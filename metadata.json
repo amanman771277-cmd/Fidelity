@@ -1,0 +1,6 @@
+{
+  "name": "Fidelity Business Group",
+  "description": "Corporate portal for Fidelity Business Group: Fidelity Architects & Consulting Engineers, Fidelity Branding & Advertising, and Fidelity Furniture & Interior Design. From thought to empire!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
