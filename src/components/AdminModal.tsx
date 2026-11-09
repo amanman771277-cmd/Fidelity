@@ -1006,6 +1006,29 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       </button>
                     </div>
                   </form>
+                  {/* Firestore Security Rules Guidance for Public Read & Write */}
+                  <div className="p-4 rounded-lg bg-[#0e121a] border border-amber-500/30 text-xs text-slate-300 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#f3d375] flex items-center gap-2">
+                        <Database className="w-4 h-4 text-[#d4af37]" />
+                        <span>Firebase Firestore Security Rules (ለሕዝብ ክፍት ንባብ እና ጽሕፈት / Public Read & Write)</span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      በቀጥታ ለሚጎበኙ እንግዶች ሁሉም የተለጠፉ ሥራዎች እንዲታዩ እና ከአድሚን ፓናል የሚደረጉ ለውጦች ወዲያውኑ እንዲመሳሰሉ በFirebase Console &gt; Firestore Database &gt; Rules ውስጥ የሚከተለውን ደንብ ያስገቡ:
+                    </p>
+                    <pre className="p-3 rounded bg-black/70 border border-slate-800 text-[11px] font-mono text-emerald-400 overflow-x-auto leading-relaxed">
+{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /posts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+  }
+}`}
+                    </pre>
+                  </div>
 
                   {/* Cloudinary Integration Guide */}
                   <div className="p-4 rounded-lg bg-[#0e121a] border border-slate-800 text-xs text-slate-400 space-y-2">

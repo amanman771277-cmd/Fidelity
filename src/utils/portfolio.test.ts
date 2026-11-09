@@ -128,6 +128,27 @@ test('SECTOR_LOGOS exports exact Cloudinary URLs and renders in generateSingleFi
   assert.ok(html.includes('dvd9lq9xzmefjopiyufp.jpg'));
 });
 
+test('generateSingleFileHtml includes physical address in footer and contact section', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('ወላይታ ሶዶ, ግሪንላንድ ሰፈር'));
+  assert.ok(html.includes('Wolaita Sodo, Greenland'));
+});
 
+test('generateSingleFileHtml hamburger menu does not contain admin button (bottom admin button only)', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  const hamburgerMenuPart = html.substring(html.indexOf('id="hamburgerDropdown"'), html.indexOf('</header>'));
+  assert.equal(hamburgerMenuPart.includes('openAdminPasswordModal'), false);
+  assert.equal(hamburgerMenuPart.includes('ui-menuAdminBtn'), false);
+  // Bottom footer retains admin button
+  const footerPart = html.substring(html.indexOf('<footer'), html.indexOf('</footer>'));
+  assert.ok(footerPart.includes('openAdminPasswordModal'));
+  assert.ok(footerPart.includes('v3.0'));
+});
 
+test('generateSingleFileHtml includes onSnapshot real-time sync and public Firestore rules guidance', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes("firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot"));
+  assert.ok(html.includes("allow read: if true;"));
+  assert.ok(html.includes("allow create, update, delete: if true;"));
+});
 

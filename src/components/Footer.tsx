@@ -51,7 +51,11 @@ export const Footer: React.FC<FooterProps> = ({
               {t.footer.desc}
             </p>
 
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              <div className="flex items-center gap-2 text-slate-300 text-xs">
+                <span className="text-[#f3d375] font-mono">📍</span>
+                <span>ወላይታ ሶዶ, ግሪንላንድ ሰፈር (Wolaita Sodo, Greenland)</span>
+              </div>
               <a
                 href={TELEGRAM_URL}
                 target="_blank"

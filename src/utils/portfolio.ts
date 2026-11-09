@@ -333,22 +333,8 @@ export function generateSingleFileHtml(
               </div>
             </div>
 
-            <!-- Admin & Telegram Links -->
-            <div class="px-3 pt-2 border-t border-slate-800/80 space-y-2">
-              <button 
-                onclick="openAdminPasswordModal()" 
-                class="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-200 hover:bg-gold-500/15 hover:text-gold-300 transition-all flex items-center justify-between group"
-              >
-                <span class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                  </svg>
-                  <span id="ui-menuAdminBtn">አድሚን ፓናል (v3.0)</span>
-                </span>
-                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-gold-400">3.0</span>
-              </button>
-
+            <!-- Direct Telegram Link -->
+            <div class="px-3 pt-2 border-t border-slate-800/80">
               <a 
                 href="https://t.me/amanman777" 
                 target="_blank" 
@@ -552,7 +538,13 @@ export function generateSingleFileHtml(
       <h3 class="text-2xl font-bold font-heading text-white">FIDELITY BUSINESS GROUP</h3>
       <p class="text-xs text-gold-400 font-semibold mt-1 uppercase" id="ui-footerMotto">ከሃሳብ ወደ ታላቅ ንግድ ግዛት!</p>
       
-      <div class="mt-8 flex flex-wrap justify-center gap-4">
+      <!-- Physical Corporate Address -->
+      <div class="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold-500/30 bg-gold-500/5 text-slate-300 text-xs font-mono">
+        <span class="text-gold-400">📍</span>
+        <span id="ui-footerAddress">ወላይታ ሶዶ, ግሪንላንድ ሰፈር (Wolaita Sodo, Greenland)</span>
+      </div>
+
+      <div class="mt-6 flex flex-wrap justify-center gap-4">
         <a href="https://t.me/amanman777" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded border border-gold-500/40 bg-gold-500/10 text-gold-300 hover:bg-gold-500/20 text-sm font-bold tracking-wider inline-flex items-center gap-2">
           <span>በቴሌግራም ያግኙን: @amanman777</span>
         </a>
@@ -825,6 +817,23 @@ export function generateSingleFileHtml(
             </button>
             <div id="saveConfigSuccess" class="hidden text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg text-center font-medium"></div>
           </form>
+
+          <!-- Firestore Security Rules Guide for Public Read & Write -->
+          <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-xs text-slate-300 space-y-2 mt-4">
+            <span class="font-bold text-gold-300 block">📌 Firestore Security Rules (ለሕዝብ ክፍት ንባብ እና ጽሕፈት / Public Read &amp; Write):</span>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              በቀጥታ ለሚጎበኙ እንግዶች ሁሉም የተለጠፉ ሥራዎች እንዲታዩ እና ከአድሚን ፓናል የሚደረጉ ለውጦች ወዲያውኑ እንዲመሳሰሉ በFirebase Console &gt; Firestore Database &gt; Rules ውስጥ የሚከተለውን ደንብ ያስገቡ:
+            </p>
+            <pre class="p-3 rounded bg-black/80 border border-slate-800 text-[11px] font-mono text-emerald-400 overflow-x-auto">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /posts/{postId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+  }
+}</pre>
+          </div>
         </div>
 
       </div>
@@ -942,6 +951,7 @@ export function generateSingleFileHtml(
       setText('ui-philosophyP2', t.philosophy.p2);
 
       setText('ui-footerMotto', t.motto);
+      setText('ui-footerAddress', t.contact.hqLabel);
     }
 
     // Render Dynamic Portfolio Gallery
@@ -1369,7 +1379,7 @@ export function generateSingleFileHtml(
           }
           firestoreDb = firebase.firestore();
 
-          // Real-time synchronization on collection 'posts'
+          // Real-time synchronization on collection 'posts' for all visitors
           firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
             if (!snapshot.empty) {
               const livePosts = [];
@@ -1378,9 +1388,13 @@ export function generateSingleFileHtml(
               });
               localProjects = livePosts;
               localStorage.setItem('fidelity_posts_v3', JSON.stringify(livePosts));
-              renderPortfolio();
-              renderAdminManageList();
+            } else {
+              // If remote is empty, use initial projects seed
+              localProjects = INITIAL_PROJECTS;
+              localStorage.setItem('fidelity_posts_v3', JSON.stringify(INITIAL_PROJECTS));
             }
+            renderPortfolio();
+            renderAdminManageList();
           }, (err) => {
             console.warn('Firestore subscription fallback:', err);
           });

@@ -347,7 +347,7 @@ export const I18N: Record<Language, Translations> = {
       successTitle: 'መልዕክትዎ ተዘጋጅቷል',
       successDesc: 'የፕሮጀክትዎ መረጃ ተዘጋጅቷል። ቴሌግራም በራሱ ካልተከፈተ ከታች ያለውን ይጫኑ:',
       openTelegramBtn: 'ቴሌግራም ይክፈቱ (@amanman777)',
-      hqLabel: 'ዋና መስሪያ ቤት: የፋይናንስ ወረዳ',
+      hqLabel: 'ወላይታ ሶዶ, ግሪንላንድ ሰፈር',
       emailLabel: 'corporate@fidelitybusinessgroup.com'
     },
     admin: {
@@ -563,7 +563,7 @@ export const I18N: Record<Language, Translations> = {
       successTitle: 'Inquiry Forwarded',
       successDesc: 'Your project brief has been formatted. If Telegram did not open automatically, click below:',
       openTelegramBtn: 'Open Telegram (@amanman777)',
-      hqLabel: 'Headquarters: Financial District, Suite 400',
+      hqLabel: 'Wolaita Sodo, Greenland (ወላይታ ሶዶ, ግሪንላንድ ሰፈር)',
       emailLabel: 'corporate@fidelitybusinessgroup.com'
     },
     admin: {
