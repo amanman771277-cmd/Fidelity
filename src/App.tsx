@@ -70,7 +70,10 @@ export default function App() {
 
   const handleAddProject = async (projectData: Omit<Project, 'id' | 'createdAt'>) => {
     const newProject = await addProjectToStore(projectData, firebaseConfig);
-    setProjects((prev) => [newProject, ...prev]);
+    setProjects((prev) => {
+      if (prev.some((p) => p.id === newProject.id)) return prev;
+      return [newProject, ...prev];
+    });
   };
 
   const handleUpdateProject = async (id: string, updatedData: Partial<Omit<Project, 'id'>>) => {

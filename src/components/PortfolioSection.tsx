@@ -203,7 +203,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => {
+            {filteredProjects.map((project, index) => {
               const sectorMeta = t.sectors[project.sector];
               const optimizedImg = formatCloudinaryUrl(project.imageUrl);
               const isCloudinary = isCloudinaryUrl(project.imageUrl);
@@ -214,7 +214,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
 
               return (
                 <article
-                  key={project.id}
+                  key={`${project.id}-${index}`}
                   className="dark-card rounded-xl overflow-hidden group flex flex-col justify-between hover:border-[#d4af37] transition-all hover:-translate-y-1 hover:shadow-[0_15px_35px_rgba(0,0,0,0.6)]"
                 >
                   <div>

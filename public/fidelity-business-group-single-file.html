@@ -661,7 +661,7 @@ service cloud.firestore {
     "locationAm": "ዋና የፋይናንስ ወረዳ",
     "year": "2025",
     "featured": true,
-    "createdAt": 1791628237372
+    "createdAt": 1791628507348
   },
   {
     "id": "fid-brand-01",
@@ -677,7 +677,7 @@ service cloud.firestore {
     "locationAm": "አለም አቀፍ ዝግጅት",
     "year": "2025",
     "featured": true,
-    "createdAt": 1792060237372
+    "createdAt": 1792060507348
   },
   {
     "id": "fid-furn-01",
@@ -693,7 +693,7 @@ service cloud.firestore {
     "locationAm": "ፕሬዝዳንታዊ ታወር ስዊት",
     "year": "2025",
     "featured": true,
-    "createdAt": 1792492237372
+    "createdAt": 1792492507348
   },
   {
     "id": "fid-arch-02",
@@ -709,7 +709,7 @@ service cloud.firestore {
     "locationAm": "ወደብ ዳርቻ",
     "year": "2024",
     "featured": false,
-    "createdAt": 1792924237372
+    "createdAt": 1792924507348
   },
   {
     "id": "fid-brand-02",
@@ -725,7 +725,7 @@ service cloud.firestore {
     "locationAm": "ዙሪክ እና ዱባይ",
     "year": "2024",
     "featured": false,
-    "createdAt": 1793356237372
+    "createdAt": 1793356507348
   },
   {
     "id": "fid-furn-02",
@@ -741,7 +741,7 @@ service cloud.firestore {
     "locationAm": "ፓሊሴድስ",
     "year": "2025",
     "featured": false,
-    "createdAt": 1793788237372
+    "createdAt": 1793788507348
   }
 ];
     let FIREBASE_CONFIG = {
@@ -1816,8 +1816,12 @@ service cloud.firestore {
           firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
             if (!snapshot.empty) {
               const livePosts = [];
+              const seenIds = new Set();
               snapshot.forEach(docSnap => {
-                livePosts.push({ id: docSnap.id, ...docSnap.data() });
+                if (!seenIds.has(docSnap.id)) {
+                  seenIds.add(docSnap.id);
+                  livePosts.push({ id: docSnap.id, ...docSnap.data() });
+                }
               });
               allProjects = livePosts;
             } else {

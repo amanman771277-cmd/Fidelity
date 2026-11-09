@@ -1428,8 +1428,12 @@ service cloud.firestore {
           firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
             if (!snapshot.empty) {
               const livePosts = [];
+              const seenIds = new Set();
               snapshot.forEach(docSnap => {
-                livePosts.push({ id: docSnap.id, ...docSnap.data() });
+                if (!seenIds.has(docSnap.id)) {
+                  seenIds.add(docSnap.id);
+                  livePosts.push({ id: docSnap.id, ...docSnap.data() });
+                }
               });
               allProjects = livePosts;
             } else {

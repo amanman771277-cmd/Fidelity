@@ -116,12 +116,16 @@ export function subscribeToProjects(
           onUpdate(INITIAL_PROJECTS, true);
         } else {
           const remoteProjects: Project[] = [];
+          const seenIds = new Set<string>();
           snapshot.forEach((docSnapshot) => {
-            const data = docSnapshot.data() as Omit<Project, 'id'>;
-            remoteProjects.push({
-              id: docSnapshot.id,
-              ...data
-            });
+            if (!seenIds.has(docSnapshot.id)) {
+              seenIds.add(docSnapshot.id);
+              const data = docSnapshot.data() as Omit<Project, 'id'>;
+              remoteProjects.push({
+                id: docSnapshot.id,
+                ...data
+              });
+            }
           });
           memoryProjects = remoteProjects;
           onUpdate(remoteProjects, true);

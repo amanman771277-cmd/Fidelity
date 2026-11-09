@@ -806,13 +806,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
 
                   <div className="space-y-3">
-                    {projects.map((p) => {
+                    {projects.map((p, index) => {
                       const displayTitle = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
                       const displayDesc = (currentLang === 'am' && p.descriptionAm) ? p.descriptionAm : p.description;
 
                       return (
                         <div
-                          key={p.id}
+                          key={`${p.id}-${index}`}
                           className="p-4 rounded-lg bg-[#0e121a] border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
                         >
                           <div className="flex items-center gap-4">
