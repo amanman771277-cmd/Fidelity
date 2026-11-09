@@ -89,6 +89,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
               <img
                 src={SECTOR_LOGOS.architects}
                 alt={t.sectors.architects.name}
+                loading="lazy"
                 className="w-11 h-11 rounded-lg object-cover border border-[#d4af37]/40 shadow-[0_0_12px_rgba(212,175,55,0.2)] group-hover:scale-105 transition-transform"
               />
               <span className="text-[10px] font-mono tracking-widest text-[#d4af37] uppercase">{t.sectors.architects.badge}</span>
@@ -118,6 +119,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
               <img
                 src={SECTOR_LOGOS.branding}
                 alt={t.sectors.branding.name}
+                loading="lazy"
                 className="w-11 h-11 rounded-lg object-cover border border-[#d4af37]/40 shadow-[0_0_12px_rgba(212,175,55,0.2)] group-hover:scale-105 transition-transform"
               />
               <span className="text-[10px] font-mono tracking-widest text-[#d4af37] uppercase">{t.sectors.branding.badge}</span>
@@ -147,6 +149,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
               <img
                 src={SECTOR_LOGOS.furniture}
                 alt={t.sectors.furniture.name}
+                loading="lazy"
                 className="w-11 h-11 rounded-lg object-cover border border-[#d4af37]/40 shadow-[0_0_12px_rgba(212,175,55,0.2)] group-hover:scale-105 transition-transform"
               />
               <span className="text-[10px] font-mono tracking-widest text-[#d4af37] uppercase">{t.sectors.furniture.badge}</span>

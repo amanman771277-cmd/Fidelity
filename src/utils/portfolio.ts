@@ -398,7 +398,7 @@ export function generateSingleFileHtml(
       <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-5">
-            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg" alt="Fidelity Architects Logo" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
+            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg" alt="Fidelity Architects Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
             <span class="text-gold-400 text-xs font-mono tracking-widest uppercase px-2.5 py-1 rounded bg-black/60 border border-gold-500/20">ዘርፍ 01</span>
           </div>
           <h3 class="text-xl font-bold font-heading text-white mb-2" id="ui-sec1Name">ፊዴሊቲ አርክቴክቶች እና አማካሪ መሐንዲሶች</h3>
@@ -414,7 +414,7 @@ export function generateSingleFileHtml(
       <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-5">
-            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg" alt="Fidelity Branding Logo" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
+            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg" alt="Fidelity Branding Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
             <span class="text-gold-400 text-xs font-mono tracking-widest uppercase px-2.5 py-1 rounded bg-black/60 border border-gold-500/20">ዘርፍ 02</span>
           </div>
           <h3 class="text-xl font-bold font-heading text-white mb-2" id="ui-sec2Name">ፊዴሊቲ ብራንዲንግ እና ማስታወቂያ</h3>
@@ -430,7 +430,7 @@ export function generateSingleFileHtml(
       <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-5">
-            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg" alt="Fidelity Furniture Logo" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
+            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg" alt="Fidelity Furniture Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
             <span class="text-gold-400 text-xs font-mono tracking-widest uppercase px-2.5 py-1 rounded bg-black/60 border border-gold-500/20">ዘርፍ 03</span>
           </div>
           <h3 class="text-xl font-bold font-heading text-white mb-2" id="ui-sec3Name">ፊዴሊቲ ፈርኒቸር እና የውስጥ ዲዛይን</h3>
@@ -860,7 +860,48 @@ service cloud.firestore {
     let allProjects = [...INITIAL_PROJECTS];
     let firestoreDb = null;
 
-    // Toggle Hamburger Menu
+    // FIRESTORE CLOUD-ONLY HELPERS (collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot)
+    function collection(db, colName) {
+      if (db && typeof db.collection === 'function') {
+        return db.collection(colName);
+      }
+      return null;
+    }
+
+    function doc(db, colName, docId) {
+      if (db && typeof db.collection === 'function') {
+        return db.collection(colName).doc(docId);
+      }
+      return null;
+    }
+
+    async function addDoc(colRef, docData) {
+      if (colRef && typeof colRef.add === 'function') {
+        return await colRef.add(docData);
+      }
+      throw new Error('Firestore collection reference not available');
+    }
+
+    async function updateDoc(docRef, docData) {
+      if (docRef && typeof docRef.update === 'function') {
+        return await docRef.update(docData);
+      }
+      throw new Error('Firestore doc reference not available');
+    }
+
+    async function deleteDoc(docRef) {
+      if (docRef && typeof docRef.delete === 'function') {
+        return await docRef.delete();
+      }
+      throw new Error('Firestore doc reference not available');
+    }
+
+    function onSnapshot(target, next, error) {
+      if (target && typeof target.onSnapshot === 'function') {
+        return target.onSnapshot(next, error);
+      }
+      return () => {};
+    }
     function toggleHamburgerMenu() {
       const menu = document.getElementById('hamburgerDropdown');
       if (menu) menu.classList.toggle('hidden');
@@ -974,9 +1015,9 @@ service cloud.firestore {
         return \`
           <div class="dark-card rounded-lg overflow-hidden group flex flex-col justify-between">
             <div class="relative aspect-video overflow-hidden bg-slate-900">
-              <img src="\${p.imageUrl}" alt="\${title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'">
+              <img src="\${p.imageUrl}" alt="\${title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'">
               <div class="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/85 backdrop-blur-md border border-gold-500/40 text-[10px] font-mono tracking-widest text-gold-300 uppercase flex items-center gap-1.5 shadow-lg">
-                <img src="\${logoUrl}" alt="\${p.sector}" class="w-4 h-4 rounded-full object-cover border border-gold-500/60 shrink-0" />
+                <img src="\${logoUrl}" alt="\${p.sector}" loading="lazy" class="w-4 h-4 rounded-full object-cover border border-gold-500/60 shrink-0" />
                 <span>\${p.sector}</span>
               </div>
             </div>
@@ -1250,18 +1291,20 @@ service cloud.firestore {
         // UPDATE EXISTING POST IN FIRESTORE COLLECTION 'posts'
         if (firestoreDb && !editingId.startsWith('post-') && !editingId.startsWith('fid-')) {
           try {
-            await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).doc(editingId).update(postData);
+            const docRef = doc(firestoreDb, FIRESTORE_COLLECTION_NAME, editingId);
+            await updateDoc(docRef, postData);
           } catch(err) {
             console.warn('Firestore update warning:', err);
           }
         }
         allProjects = allProjects.map(p => p.id === editingId ? { ...p, ...postData } : p);
       } else {
-        // CREATE NEW POST IN FIRESTORE COLLECTION 'posts'
+        // CREATE NEW POST IN FIRESTORE COLLECTION 'posts' USING addDoc
         const newPost = { ...postData, createdAt: Date.now() };
         if (firestoreDb) {
           try {
-            const docRef = await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).add(newPost);
+            const colRef = collection(firestoreDb, FIRESTORE_COLLECTION_NAME);
+            const docRef = await addDoc(colRef, newPost);
             newPost.id = docRef.id;
           } catch(err) {
             console.warn('Could not save to Firestore collection posts, keeping in memory:', err);
@@ -1306,7 +1349,7 @@ service cloud.firestore {
         return \`
           <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-slate-800">
             <div class="flex items-center gap-3 overflow-hidden">
-              <img src="\${p.imageUrl}" alt="\${title}" class="w-12 h-12 rounded object-cover border border-slate-800" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80'">
+              <img src="\${p.imageUrl}" alt="\${title}" loading="lazy" class="w-12 h-12 rounded object-cover border border-slate-800" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80'">
               <div class="truncate">
                 <h5 class="text-xs font-bold text-white truncate">\${title}</h5>
                 <span class="text-[10px] text-gold-400 uppercase font-mono">\${p.sector}</span>
@@ -1330,7 +1373,8 @@ service cloud.firestore {
 
       if (firestoreDb && !id.startsWith('post-') && !id.startsWith('fid-')) {
         try {
-          await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).doc(id).delete();
+          const docRef = doc(firestoreDb, FIRESTORE_COLLECTION_NAME, id);
+          await deleteDoc(docRef);
         } catch(err) {
           console.warn('Firestore delete warning:', err);
         }
@@ -1365,7 +1409,7 @@ service cloud.firestore {
       setTimeout(() => successBox.classList.add('hidden'), 4000);
     }
 
-    // 3. REAL-TIME SYNC FOR ALL VISITORS VIA onSnapshot
+    // 2. REAL-TIME GLOBAL SYNC VIA onSnapshot on 'posts' collection
     function initFirebaseApp() {
       const statusBadge = document.getElementById('firestoreStatusBadge');
       try {
@@ -1381,22 +1425,26 @@ service cloud.firestore {
           firestoreDb = firebase.firestore();
 
           // Real-time synchronization on collection 'posts' for all visitors via onSnapshot
-          firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
-            if (!snapshot.empty) {
-              const livePosts = [];
-              snapshot.forEach(doc => {
-                livePosts.push({ id: doc.id, ...doc.data() });
-              });
-              allProjects = livePosts;
-            } else {
-              // If remote is empty, use initial projects seed in memory
-              allProjects = [...INITIAL_PROJECTS];
-            }
-            renderPortfolio();
-            renderAdminManageList();
-          }, (err) => {
-            console.warn('Firestore subscription fallback:', err);
-          });
+          const postsCol = collection(firestoreDb, FIRESTORE_COLLECTION_NAME);
+          const q = postsCol ? postsCol.orderBy('createdAt', 'desc') : null;
+          if (q) {
+            onSnapshot(q, (snapshot) => {
+              if (!snapshot.empty) {
+                const livePosts = [];
+                snapshot.forEach(docSnap => {
+                  livePosts.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                allProjects = livePosts;
+              } else {
+                // If remote is empty, use initial projects seed in memory
+                allProjects = [...INITIAL_PROJECTS];
+              }
+              renderPortfolio();
+              renderAdminManageList();
+            }, (err) => {
+              console.warn('Firestore subscription fallback:', err);
+            });
+          }
 
           if (statusBadge) {
             statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Firestore Live (posts)</span>';

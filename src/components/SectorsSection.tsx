@@ -38,6 +38,7 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
                 <img
                   src={SECTOR_LOGOS.architects}
                   alt={t.sectors.architects.name}
+                  loading="lazy"
                   className="w-14 h-14 rounded-xl object-cover border border-[#d4af37]/40 shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover:scale-105 transition-transform"
                 />
                 <span className="text-xs font-mono font-bold tracking-widest text-[#d4af37] px-2.5 py-1 rounded bg-black/50 border border-[#d4af37]/20 uppercase">
@@ -106,6 +107,7 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
                 <img
                   src={SECTOR_LOGOS.branding}
                   alt={t.sectors.branding.name}
+                  loading="lazy"
                   className="w-14 h-14 rounded-xl object-cover border border-[#d4af37]/40 shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover:scale-105 transition-transform"
                 />
                 <span className="text-xs font-mono font-bold tracking-widest text-[#d4af37] px-2.5 py-1 rounded bg-black/50 border border-[#d4af37]/20 uppercase">
@@ -174,6 +176,7 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
                 <img
                   src={SECTOR_LOGOS.furniture}
                   alt={t.sectors.furniture.name}
+                  loading="lazy"
                   className="w-14 h-14 rounded-xl object-cover border border-[#d4af37]/40 shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover:scale-105 transition-transform"
                 />
                 <span className="text-xs font-mono font-bold tracking-widest text-[#d4af37] px-2.5 py-1 rounded bg-black/50 border border-[#d4af37]/20 uppercase">

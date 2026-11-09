@@ -241,6 +241,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
                         <img 
                           src={SECTOR_LOGOS[project.sector]} 
                           alt={sectorMeta?.shortName || project.sector} 
+                          loading="lazy"
                           className="w-4 h-4 rounded-full object-cover border border-[#d4af37]/60 shrink-0" 
                         />
                         <span>{sectorMeta?.shortName || project.sector}</span>
