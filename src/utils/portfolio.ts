@@ -180,12 +180,13 @@ export const CLOUDINARY_SAMPLE_PRESETS = [
 ];
 
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfigState = {
-  apiKey: 'AIzaSyA_DEMO_KEY_FIDELITY_BUSINESS_GROUP',
-  authDomain: 'fidelity-business-group.firebaseapp.com',
-  projectId: 'fidelity-business-group',
-  storageBucket: 'fidelity-business-group.appspot.com',
-  messagingSenderId: '123456789012',
-  appId: '1:123456789012:web:abcdef123456789'
+  apiKey: 'AIzaSyD8ZY1xm8X_ByYnrLssnVIfOi1YrNWdpKk',
+  authDomain: 'logical-centaur-26m9v.firebaseapp.com',
+  projectId: 'logical-centaur-26m9v',
+  storageBucket: 'logical-centaur-26m9v.firebasestorage.app',
+  messagingSenderId: '875537578751',
+  appId: '1:875537578751:web:1c136defc36b92c1a2eaca',
+  firestoreDatabaseId: 'ai-studio-fidelitybusiness-253225fe-ec23-49f0-a198-6037d165328f'
 };
 
 /**
@@ -1291,20 +1292,18 @@ service cloud.firestore {
         // UPDATE EXISTING POST IN FIRESTORE COLLECTION 'posts'
         if (firestoreDb && !editingId.startsWith('post-') && !editingId.startsWith('fid-')) {
           try {
-            const docRef = doc(firestoreDb, FIRESTORE_COLLECTION_NAME, editingId);
-            await updateDoc(docRef, postData);
+            await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).doc(editingId).update(postData);
           } catch(err) {
             console.warn('Firestore update warning:', err);
           }
         }
         allProjects = allProjects.map(p => p.id === editingId ? { ...p, ...postData } : p);
       } else {
-        // CREATE NEW POST IN FIRESTORE COLLECTION 'posts' USING addDoc
+        // CREATE NEW POST IN FIRESTORE COLLECTION 'posts' USING add
         const newPost = { ...postData, createdAt: Date.now() };
         if (firestoreDb) {
           try {
-            const colRef = collection(firestoreDb, FIRESTORE_COLLECTION_NAME);
-            const docRef = await addDoc(colRef, newPost);
+            const docRef = await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).add(newPost);
             newPost.id = docRef.id;
           } catch(err) {
             console.warn('Could not save to Firestore collection posts, keeping in memory:', err);
@@ -1373,8 +1372,7 @@ service cloud.firestore {
 
       if (firestoreDb && !id.startsWith('post-') && !id.startsWith('fid-')) {
         try {
-          const docRef = doc(firestoreDb, FIRESTORE_COLLECTION_NAME, id);
-          await deleteDoc(docRef);
+          await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).doc(id).delete();
         } catch(err) {
           console.warn('Firestore delete warning:', err);
         }
@@ -1419,32 +1417,30 @@ service cloud.firestore {
         }
 
         if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('DEMO_KEY') && typeof firebase !== 'undefined') {
-          if (!firebase.apps.length) {
-            firebase.initializeApp(FIREBASE_CONFIG);
+          const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+          if (FIREBASE_CONFIG.firestoreDatabaseId) {
+            firestoreDb = app.firestore(FIREBASE_CONFIG.firestoreDatabaseId);
+          } else {
+            firestoreDb = app.firestore();
           }
-          firestoreDb = firebase.firestore();
 
           // Real-time synchronization on collection 'posts' for all visitors via onSnapshot
-          const postsCol = collection(firestoreDb, FIRESTORE_COLLECTION_NAME);
-          const q = postsCol ? postsCol.orderBy('createdAt', 'desc') : null;
-          if (q) {
-            onSnapshot(q, (snapshot) => {
-              if (!snapshot.empty) {
-                const livePosts = [];
-                snapshot.forEach(docSnap => {
-                  livePosts.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                allProjects = livePosts;
-              } else {
-                // If remote is empty, use initial projects seed in memory
-                allProjects = [...INITIAL_PROJECTS];
-              }
-              renderPortfolio();
-              renderAdminManageList();
-            }, (err) => {
-              console.warn('Firestore subscription fallback:', err);
-            });
-          }
+          firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              const livePosts = [];
+              snapshot.forEach(docSnap => {
+                livePosts.push({ id: docSnap.id, ...docSnap.data() });
+              });
+              allProjects = livePosts;
+            } else {
+              // If remote is empty, use initial projects seed in memory
+              allProjects = [...INITIAL_PROJECTS];
+            }
+            renderPortfolio();
+            renderAdminManageList();
+          }, (err) => {
+            console.warn('Firestore subscription fallback:', err);
+          });
 
           if (statusBadge) {
             statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Firestore Live (posts)</span>';

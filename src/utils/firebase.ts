@@ -61,7 +61,11 @@ export function initFirebaseService(config: FirebaseConfigState): Firestore | nu
     } else {
       activeApp = initializeApp(config);
     }
-    activeDb = getFirestore(activeApp);
+    if (config.firestoreDatabaseId) {
+      activeDb = getFirestore(activeApp, config.firestoreDatabaseId);
+    } else {
+      activeDb = getFirestore(activeApp);
+    }
     return activeDb;
   } catch (err) {
     console.error('Firebase initialization error:', err);

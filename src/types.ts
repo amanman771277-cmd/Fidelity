@@ -24,6 +24,7 @@ export interface FirebaseConfigState {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  firestoreDatabaseId?: string;
 }
 
 export interface SectorInfo {
