@@ -66,17 +66,6 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
                 <Sparkles className="w-3 h-3 text-[#d4af37]" />
                 {t.portfolio.badge}
               </span>
-              <span 
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-mono border ${
-                  isFirebaseLive 
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' 
-                    : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                }`}
-                title={isFirebaseLive ? 'Live Firebase Firestore Sync' : 'Instant Persistent Local Storage Sync'}
-              >
-                <Database className="w-3 h-3" />
-                <span>{isFirebaseLive ? t.portfolio.liveFirestore : t.portfolio.offlineCache}</span>
-              </span>
             </div>
             <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight mt-3">
               {t.portfolio.heading}

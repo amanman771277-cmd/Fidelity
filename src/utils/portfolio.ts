@@ -612,10 +612,6 @@ export function generateSingleFileHtml(
             <p class="text-xs text-slate-400 mt-1">የክላውዲነሪ ቀጥታ ምስል ጭነትና የFirestore ስራዎች አስተዳደር</p>
           </div>
           <div class="flex items-center gap-2">
-            <span id="firestoreStatusBadge" class="px-2.5 py-1 rounded text-[11px] font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span>Firestore Collection: 'posts'</span>
-            </span>
             <button onclick="lockAdminPanel()" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-xs font-medium">ውጣ</button>
           </div>
         </div>
@@ -627,9 +623,6 @@ export function generateSingleFileHtml(
           </button>
           <button id="tabBtnManage" onclick="switchAdminTab('manage')" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
             ያሉ ሥራዎችን ማስተዳደር
-          </button>
-          <button id="tabBtnFirebase" onclick="switchAdminTab('firebase')" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
-            የFirebase ማስተካከያ
           </button>
         </div>
 
@@ -782,58 +775,6 @@ export function generateSingleFileHtml(
           </div>
           <div id="managePostsList" class="space-y-3 max-h-96 overflow-y-auto pr-1">
             <!-- Dynamically populated -->
-          </div>
-        </div>
-
-        <!-- Tab 3: Firebase Config Editor -->
-        <div id="tabContentFirebase" class="hidden mt-6 space-y-4">
-          <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/50">
-            <h4 class="text-sm font-bold text-gold-400 mb-2">የFirebase Firestore ውቅር (Firestore Configuration)</h4>
-            <p class="text-xs text-slate-300 leading-relaxed">
-              ሥራዎች በቀጥታ ወደ Firestore ኮሌክሽን <code class="text-gold-400 font-mono font-bold">'posts'</code> ይቀመጣሉ። የራስዎን የFirebase credentials እዚህ በማስገባት በቅጽበት ማገናኘት ይችላሉ።
-            </p>
-          </div>
-
-          <form onsubmit="handleSaveFirebaseConfig(event)" class="space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label class="block text-slate-400 mb-1">API Key</label>
-                <input type="text" id="cfgApiKey" class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white font-mono" />
-              </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Project ID</label>
-                <input type="text" id="cfgProjectId" class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white font-mono" />
-              </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Auth Domain</label>
-                <input type="text" id="cfgAuthDomain" class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white font-mono" />
-              </div>
-              <div>
-                <label class="block text-slate-400 mb-1">App ID</label>
-                <input type="text" id="cfgAppId" class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white font-mono" />
-              </div>
-            </div>
-            <button type="submit" class="py-2.5 px-6 rounded bg-gold-500 text-slate-950 font-bold text-xs uppercase hover:brightness-110 transition-all">
-              የውቅር መረጃውን መዝግብ (Save Config)
-            </button>
-            <div id="saveConfigSuccess" class="hidden text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-lg text-center font-medium"></div>
-          </form>
-
-          <!-- Firestore Security Rules Guide for Public Read & Write -->
-          <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 text-xs text-slate-300 space-y-2 mt-4">
-            <span class="font-bold text-gold-300 block">📌 Firestore Security Rules (ለሕዝብ ክፍት ንባብ እና ጽሕፈት / Public Read &amp; Write):</span>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              በቀጥታ ለሚጎበኙ እንግዶች ሁሉም የተለጠፉ ሥራዎች እንዲታዩ እና ከአድሚን ፓናል የሚደረጉ ለውጦች ወዲያውኑ እንዲመሳሰሉ በFirebase Console &gt; Firestore Database &gt; Rules ውስጥ የሚከተለውን ደንብ ያስገቡ:
-            </p>
-            <pre class="p-3 rounded bg-black/80 border border-slate-800 text-[11px] font-mono text-emerald-400 overflow-x-auto">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /posts/{postId} {
-      allow read: if true;
-      allow create, update, delete: if true;
-    }
-  }
-}</pre>
           </div>
         </div>
 
@@ -1082,7 +1023,6 @@ service cloud.firestore {
         document.getElementById('adminLockScreen').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
         renderAdminManageList();
-        populateFirebaseConfigInputs();
       } else {
         errBox.textContent = 'የተሳሳተ የአድሚን የይለፍ ቃል። (መደበኛ: admin123)';
         errBox.classList.remove('hidden');
@@ -1099,18 +1039,16 @@ service cloud.firestore {
     function switchAdminTab(tab) {
       const btnCreate = document.getElementById('tabBtnCreate');
       const btnManage = document.getElementById('tabBtnManage');
-      const btnFirebase = document.getElementById('tabBtnFirebase');
       const paneCreate = document.getElementById('tabContentCreate');
       const paneManage = document.getElementById('tabContentManage');
-      const paneFirebase = document.getElementById('tabContentFirebase');
+
+      if (!btnCreate || !btnManage || !paneCreate || !paneManage) return;
 
       btnCreate.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
       btnManage.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
-      btnFirebase.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
 
       paneCreate.classList.add('hidden');
       paneManage.classList.add('hidden');
-      paneFirebase.classList.add('hidden');
 
       if (tab === 'create') {
         btnCreate.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
@@ -1119,10 +1057,6 @@ service cloud.firestore {
         btnManage.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
         paneManage.classList.remove('hidden');
         renderAdminManageList();
-      } else if (tab === 'firebase') {
-        btnFirebase.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
-        paneFirebase.classList.remove('hidden');
-        populateFirebaseConfigInputs();
       }
     }
 
@@ -1383,39 +1317,9 @@ service cloud.firestore {
       renderAdminManageList();
     }
 
-    // FIREBASE CONFIG LOGIC
-    function populateFirebaseConfigInputs() {
-      document.getElementById('cfgApiKey').value = FIREBASE_CONFIG.apiKey || '';
-      document.getElementById('cfgProjectId').value = FIREBASE_CONFIG.projectId || '';
-      document.getElementById('cfgAuthDomain').value = FIREBASE_CONFIG.authDomain || '';
-      document.getElementById('cfgAppId').value = FIREBASE_CONFIG.appId || '';
-    }
-
-    function handleSaveFirebaseConfig(e) {
-      e.preventDefault();
-      FIREBASE_CONFIG.apiKey = document.getElementById('cfgApiKey').value.trim();
-      FIREBASE_CONFIG.projectId = document.getElementById('cfgProjectId').value.trim();
-      FIREBASE_CONFIG.authDomain = document.getElementById('cfgAuthDomain').value.trim();
-      FIREBASE_CONFIG.appId = document.getElementById('cfgAppId').value.trim();
-
-      localStorage.setItem('fidelity_firebase_cfg', JSON.stringify(FIREBASE_CONFIG));
-      initFirebaseApp();
-
-      const successBox = document.getElementById('saveConfigSuccess');
-      successBox.textContent = 'የFirebase ውቅር ተመዝግቧል! ከኮሌክሽን "posts" ጋር እየተገናኘ ነው...';
-      successBox.classList.remove('hidden');
-      setTimeout(() => successBox.classList.add('hidden'), 4000);
-    }
-
     // 2. REAL-TIME GLOBAL SYNC VIA onSnapshot on 'posts' collection
     function initFirebaseApp() {
-      const statusBadge = document.getElementById('firestoreStatusBadge');
       try {
-        const storedCfg = localStorage.getItem('fidelity_firebase_cfg');
-        if (storedCfg) {
-          FIREBASE_CONFIG = JSON.parse(storedCfg);
-        }
-
         if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('DEMO_KEY') && typeof firebase !== 'undefined') {
           const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
           if (FIREBASE_CONFIG.firestoreDatabaseId) {
@@ -1445,15 +1349,6 @@ service cloud.firestore {
           }, (err) => {
             console.warn('Firestore subscription fallback:', err);
           });
-
-          if (statusBadge) {
-            statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Firestore Live (posts)</span>';
-            statusBadge.className = 'px-2.5 py-1 rounded text-[11px] font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5';
-          }
-        } else {
-          if (statusBadge) {
-            statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Firestore Ready (posts)</span>';
-          }
         }
       } catch(err) {
         console.warn('Firebase initialization notice:', err);

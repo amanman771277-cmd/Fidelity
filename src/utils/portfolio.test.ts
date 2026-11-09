@@ -145,12 +145,12 @@ test('generateSingleFileHtml hamburger menu does not contain admin button (botto
   assert.ok(footerPart.includes('v3.0'));
 });
 
-test('generateSingleFileHtml includes onSnapshot real-time sync and public Firestore rules guidance', () => {
+test('generateSingleFileHtml includes onSnapshot real-time sync on collection posts without config clutter', () => {
   const html = generateSingleFileHtml(INITIAL_PROJECTS);
   assert.ok(html.includes("onSnapshot("));
   assert.ok(html.includes("FIRESTORE_COLLECTION_NAME = 'posts'"));
-  assert.ok(html.includes("allow read: if true;"));
-  assert.ok(html.includes("allow create, update, delete: if true;"));
+  assert.equal(html.includes("cfgApiKey"), false);
+  assert.equal(html.includes("tabBtnFirebase"), false);
 });
 
 test('generateSingleFileHtml bundles Cloudinary imageUrl with postData and does not persist posts to localStorage', () => {

@@ -71,8 +71,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Tabs: 'create' | 'manage' | 'firebase'
-  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'firebase'>('create');
+  // Tabs: 'create' | 'manage'
+  const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create');
 
   // Editing state for existing posts
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -429,23 +429,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <List className="w-3.5 h-3.5" />
                 <span>{t.admin.tabManage} ({projects.length})</span>
               </button>
-
-              <button
-                onClick={() => setActiveTab('firebase')}
-                className={`px-3.5 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition-all flex items-center gap-2 shrink-0 ${
-                  activeTab === 'firebase'
-                    ? 'bg-[#d4af37] text-slate-950 gold-glow font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                }`}
-              >
-                <Database className="w-3.5 h-3.5" />
-                <span>{t.admin.tabFirebase} (posts)</span>
-                {isFirebaseLive ? (
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                )}
-              </button>
             </div>
 
             {/* Tab Panes */}
@@ -541,30 +524,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     )}
                   </div>
 
-                  {/* 2. Cloudinary Sample Presets (Quick-Fill for Testing) */}
-                  <div className="p-4 rounded-lg bg-[#0e121a] border border-slate-800 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
-                        <span>{t.admin.samplePresetsTitle}</span>
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-mono">{t.admin.oneClickTest}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {CLOUDINARY_SAMPLE_PRESETS.map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleApplyPreset(preset)}
-                          className="px-2.5 py-1 rounded bg-slate-900 hover:bg-[#d4af37]/20 border border-slate-700 hover:border-[#d4af37] text-[11px] text-slate-300 hover:text-white transition-all flex items-center gap-1"
-                        >
-                          <span>{preset.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 3. POST DETAILS FORM (BILINGUAL & EDIT CAPABLE) */}
+                  {/* POST DETAILS FORM (BILINGUAL & EDIT CAPABLE) */}
                   <form onSubmit={handleSavePost} className="space-y-4">
                     {/* Editing Banner */}
                     {editingProjectId && (
@@ -877,178 +837,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* TAB 3: FIREBASE & CLOUDINARY CONFIGURATION */}
-              {activeTab === 'firebase' && (
-                <div className="max-w-2xl mx-auto space-y-6">
-                  <div>
-                    <h3 className="font-heading text-xl font-bold text-white">Firebase Firestore ('posts') &amp; Cloudinary Setup</h3>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Posts sync in real-time to collection <code className="text-[#f3d375] font-mono">posts</code>. Cloudinary direct upload is hardcoded to cloud <code className="text-[#f3d375] font-mono">{CLOUDINARY_CLOUD_NAME}</code> with preset <code className="text-[#f3d375] font-mono">{CLOUDINARY_UPLOAD_PRESET}</code>.
-                    </p>
-                  </div>
-
-                  <div className={`p-4 rounded-lg border text-xs flex items-center justify-between ${
-                    isFirebaseLive 
-                      ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                      : 'bg-amber-950/30 border-amber-500/40 text-amber-300'
-                  }`}>
-                    <div className="flex items-center gap-3">
-                      <Database className="w-5 h-5 shrink-0" />
-                      <div>
-                        <div className="font-bold">
-                          {isFirebaseLive ? 'Active Live Firestore ("posts") Connection' : 'Running in Persistent Cache Mode'}
-                        </div>
-                        <div className="text-[11px] opacity-80">
-                          {isFirebaseLive 
-                            ? 'Real-time multi-device cloud synchronization is active on collection "posts".'
-                            : 'All operations save instantly to local storage. Paste your Firebase keys below for live cloud sync.'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {configSaved && (
-                    <div className="p-3 rounded bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      <span>Firebase configuration saved! Initializing live connection to 'posts'...</span>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSaveConfig} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          API Key
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgApiKey}
-                          onChange={(e) => setCfgApiKey(e.target.value)}
-                          placeholder="AIzaSy..."
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          Project ID
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgProjectId}
-                          onChange={(e) => setCfgProjectId(e.target.value)}
-                          placeholder="fidelity-business-group"
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          Auth Domain
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgAuthDomain}
-                          onChange={(e) => setCfgAuthDomain(e.target.value)}
-                          placeholder="fidelity-group.firebaseapp.com"
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          App ID
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgAppId}
-                          onChange={(e) => setCfgAppId(e.target.value)}
-                          placeholder="1:123456789:web:abcdef"
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          Storage Bucket
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgStorageBucket}
-                          onChange={(e) => setCfgStorageBucket(e.target.value)}
-                          placeholder="fidelity-group.appspot.com"
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1">
-                          Messaging Sender ID
-                        </label>
-                        <input
-                          type="text"
-                          value={cfgMessagingSenderId}
-                          onChange={(e) => setCfgMessagingSenderId(e.target.value)}
-                          placeholder="123456789012"
-                          className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 text-xs text-white outline-none font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="submit"
-                        className="w-full py-2.5 rounded bg-[#d4af37] text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all gold-glow"
-                      >
-                        Save Configuration &amp; Sync 'posts'
-                      </button>
-                    </div>
-                  </form>
-                  {/* Firestore Security Rules Guidance for Public Read & Write */}
-                  <div className="p-4 rounded-lg bg-[#0e121a] border border-amber-500/30 text-xs text-slate-300 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#f3d375] flex items-center gap-2">
-                        <Database className="w-4 h-4 text-[#d4af37]" />
-                        <span>Firebase Firestore Security Rules (ለሕዝብ ክፍት ንባብ እና ጽሕፈት / Public Read & Write)</span>
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      በቀጥታ ለሚጎበኙ እንግዶች ሁሉም የተለጠፉ ሥራዎች እንዲታዩ እና ከአድሚን ፓናል የሚደረጉ ለውጦች ወዲያውኑ እንዲመሳሰሉ በFirebase Console &gt; Firestore Database &gt; Rules ውስጥ የሚከተለውን ደንብ ያስገቡ:
-                    </p>
-                    <pre className="p-3 rounded bg-black/70 border border-slate-800 text-[11px] font-mono text-emerald-400 overflow-x-auto leading-relaxed">
-{`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /posts/{postId} {
-      allow read: if true;
-      allow create, update, delete: if true;
-    }
-  }
-}`}
-                    </pre>
-                  </div>
-
-                  {/* Cloudinary Integration Guide */}
-                  <div className="p-4 rounded-lg bg-[#0e121a] border border-slate-800 text-xs text-slate-400 space-y-2">
-                    <div className="font-bold text-white flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-[#d4af37]" />
-                      <span>Cloudinary Direct Unsigned API Specifications</span>
-                    </div>
-                    <p className="leading-relaxed font-mono text-[11px] text-slate-300">
-                      Endpoint: <code className="text-[#f3d375]">https://api.cloudinary.com/v1_1/du5fpqadb/image/upload</code><br />
-                      Upload Preset: <code className="text-[#f3d375]">Fidelity</code><br />
-                      Cloud Name: <code className="text-[#f3d375]">du5fpqadb</code>
-                    </p>
-                  </div>
-                </div>
-              )}
-
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
