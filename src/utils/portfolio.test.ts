@@ -152,3 +152,16 @@ test('generateSingleFileHtml includes onSnapshot real-time sync and public Fires
   assert.ok(html.includes("allow create, update, delete: if true;"));
 });
 
+test('generateSingleFileHtml bundles Cloudinary imageUrl with postData and does not persist posts to localStorage', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  // Guarantee no localStorage used for posts
+  assert.equal(html.includes("localStorage.setItem('fidelity_posts_v3'"), false);
+  assert.equal(html.includes('fidelity_posts_v3'), false);
+  // Bundles imageUrl and text in postData
+  assert.ok(html.includes('imageUrl,'));
+  assert.ok(html.includes('titleAm: finalTitleAm,'));
+  assert.ok(html.includes('descriptionAm: finalDescAm,'));
+  assert.ok(html.includes('firestoreDb.collection(FIRESTORE_COLLECTION_NAME).add(newPost)'));
+});
+
+

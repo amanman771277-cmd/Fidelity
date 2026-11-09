@@ -856,7 +856,8 @@ service cloud.firestore {
     let currentLang = 'am'; // Default language Amharic
     let currentFilter = 'all';
     let isAdminLoggedIn = false;
-    let localProjects = JSON.parse(localStorage.getItem('fidelity_posts_v3') || 'null') || INITIAL_PROJECTS;
+    // In-memory state only (no localStorage for posts) - populated and updated live by Firebase Firestore
+    let allProjects = [...INITIAL_PROJECTS];
     let firestoreDb = null;
 
     // Toggle Hamburger Menu
@@ -958,7 +959,7 @@ service cloud.firestore {
     function renderPortfolio() {
       const grid = document.getElementById('portfolioGrid');
       if (!grid) return;
-      const filtered = localProjects.filter(p => currentFilter === 'all' || p.sector === currentFilter);
+      const filtered = allProjects.filter(p => currentFilter === 'all' || p.sector === currentFilter);
       const t = I18N_DATA[currentLang] || I18N_DATA['am'];
       const sectorLogos = {
         architects: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg',
@@ -1164,7 +1165,7 @@ service cloud.firestore {
     }
 
     function handleStartEditPost(id) {
-      const p = localProjects.find(item => item.id === id);
+      const p = allProjects.find(item => item.id === id);
       if (!p) return;
 
       document.getElementById('editingPostId').value = p.id;
@@ -1185,7 +1186,7 @@ service cloud.firestore {
       document.getElementById('adminEditingBanner').classList.remove('hidden');
 
       const submitBtn = document.getElementById('submitPostBtn');
-      submitBtn.textContent = 'ሥራውን አዘምን (Update Post) → (Firestore \'posts\')';
+      submitBtn.textContent = "ሥራውን አዘምን (Update Post) → (Firestore 'posts')";
 
       switchAdminTab('create');
     }
@@ -1203,11 +1204,11 @@ service cloud.firestore {
 
       const submitBtn = document.getElementById('submitPostBtn');
       if (submitBtn) {
-        submitBtn.textContent = 'ሥራውን ለጥፍ / Post to Collection \'posts\'';
+        submitBtn.textContent = "ሥራውን ለጥፍ / Post to Collection 'posts'";
       }
     }
 
-    // POST CREATION / EDITING WITH FIRESTORE 'posts' SYNC
+    // POST CREATION / EDITING WITH FIRESTORE 'posts' SYNC (NO LOCALSTORAGE)
     async function handleCreateOrUpdatePost(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitPostBtn');
@@ -1229,6 +1230,7 @@ service cloud.firestore {
       const finalDescAm = descAm || descEn;
       const imageUrl = document.getElementById('postImageUrl').value.trim() || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80';
 
+      // 1. CLOUDINARY & FIREBASE INTEGRATION: Image URL and bilingual text saved TOGETHER as Firestore document
       const postData = {
         title: titleEn,
         titleAm: finalTitleAm,
@@ -1253,7 +1255,7 @@ service cloud.firestore {
             console.warn('Firestore update warning:', err);
           }
         }
-        localProjects = localProjects.map(p => p.id === editingId ? { ...p, ...postData } : p);
+        allProjects = allProjects.map(p => p.id === editingId ? { ...p, ...postData } : p);
       } else {
         // CREATE NEW POST IN FIRESTORE COLLECTION 'posts'
         const newPost = { ...postData, createdAt: Date.now() };
@@ -1262,16 +1264,16 @@ service cloud.firestore {
             const docRef = await firestoreDb.collection(FIRESTORE_COLLECTION_NAME).add(newPost);
             newPost.id = docRef.id;
           } catch(err) {
-            console.warn('Could not save to Firestore collection posts, saving locally:', err);
+            console.warn('Could not save to Firestore collection posts, keeping in memory:', err);
             newPost.id = 'post-' + Date.now();
           }
         } else {
           newPost.id = 'post-' + Date.now();
         }
-        localProjects = [newPost, ...localProjects];
+        allProjects = [newPost, ...allProjects];
       }
 
-      localStorage.setItem('fidelity_posts_v3', JSON.stringify(localProjects));
+      // 2. NO LOCALSTORAGE FOR POSTS: Updates in memory and syncs directly via Firestore
       renderPortfolio();
       renderAdminManageList();
 
@@ -1292,14 +1294,14 @@ service cloud.firestore {
       const count = document.getElementById('managePostsCount');
       if (!list || !count) return;
 
-      count.textContent = localProjects.length;
+      count.textContent = allProjects.length;
 
-      if (localProjects.length === 0) {
+      if (allProjects.length === 0) {
         list.innerHTML = '<div class="text-center py-8 text-xs text-slate-500">ምንም የተለጠፈ ሥራ አልተገኘም።</div>';
         return;
       }
 
-      list.innerHTML = localProjects.map(p => {
+      list.innerHTML = allProjects.map(p => {
         const title = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
         return \`
           <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-slate-800">
@@ -1334,8 +1336,7 @@ service cloud.firestore {
         }
       }
 
-      localProjects = localProjects.filter(p => p.id !== id);
-      localStorage.setItem('fidelity_posts_v3', JSON.stringify(localProjects));
+      allProjects = allProjects.filter(p => p.id !== id);
       renderPortfolio();
       renderAdminManageList();
     }
@@ -1364,7 +1365,7 @@ service cloud.firestore {
       setTimeout(() => successBox.classList.add('hidden'), 4000);
     }
 
-    // INITIALIZE FIREBASE FIRESTORE REAL-TIME SYNC
+    // 3. REAL-TIME SYNC FOR ALL VISITORS VIA onSnapshot
     function initFirebaseApp() {
       const statusBadge = document.getElementById('firestoreStatusBadge');
       try {
@@ -1379,19 +1380,17 @@ service cloud.firestore {
           }
           firestoreDb = firebase.firestore();
 
-          // Real-time synchronization on collection 'posts' for all visitors
+          // Real-time synchronization on collection 'posts' for all visitors via onSnapshot
           firestoreDb.collection(FIRESTORE_COLLECTION_NAME).orderBy('createdAt', 'desc').onSnapshot((snapshot) => {
             if (!snapshot.empty) {
               const livePosts = [];
               snapshot.forEach(doc => {
                 livePosts.push({ id: doc.id, ...doc.data() });
               });
-              localProjects = livePosts;
-              localStorage.setItem('fidelity_posts_v3', JSON.stringify(livePosts));
+              allProjects = livePosts;
             } else {
-              // If remote is empty, use initial projects seed
-              localProjects = INITIAL_PROJECTS;
-              localStorage.setItem('fidelity_posts_v3', JSON.stringify(INITIAL_PROJECTS));
+              // If remote is empty, use initial projects seed in memory
+              allProjects = [...INITIAL_PROJECTS];
             }
             renderPortfolio();
             renderAdminManageList();

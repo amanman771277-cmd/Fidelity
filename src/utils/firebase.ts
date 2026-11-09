@@ -14,7 +14,6 @@ import {
 import { Project, FirebaseConfigState } from '../types.ts';
 import { DEFAULT_FIREBASE_CONFIG, INITIAL_PROJECTS } from './portfolio.ts';
 
-const STORAGE_KEY_POSTS = 'fidelity_business_group_posts_v3';
 const STORAGE_KEY_CONFIG = 'fidelity_business_group_firebase_config_v3';
 export const FIRESTORE_COLLECTION_NAME = 'posts';
 
@@ -70,42 +69,23 @@ export function initFirebaseService(config: FirebaseConfigState): Firestore | nu
   }
 }
 
+let memoryProjects: Project[] = [...INITIAL_PROJECTS];
+
 /**
- * Get cached local projects from localStorage or default seed
+ * In-memory projects cache (posts are saved directly to Firestore, not localStorage)
  */
 export function getLocalProjects(): Project[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY_POSTS);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
-      }
-    }
-  } catch (err) {
-    console.warn('Could not load local projects:', err);
-  }
-  // Store initial seed
-  try {
-    localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(INITIAL_PROJECTS));
-  } catch (e) {
-    // ignore
-  }
-  return INITIAL_PROJECTS;
+  return memoryProjects;
 }
 
 export function saveLocalProjects(projects: Project[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(projects));
-  } catch (err) {
-    console.error('Failed to save projects to localStorage:', err);
-  }
+  memoryProjects = projects;
 }
 
 /**
  * Subscribe to real-time project updates from Firestore collection 'posts'.
- * If Firebase Firestore is configured, attaches a real-time listener.
- * Otherwise, falls back to persistent local storage.
+ * Uses onSnapshot for real-time live synchronization for all visitors.
+ * If Firestore is not yet configured, uses the initial in-memory seed without localStorage.
  */
 export function subscribeToProjects(
   config: FirebaseConfigState,
@@ -114,16 +94,9 @@ export function subscribeToProjects(
   const db = initFirebaseService(config);
 
   if (!db) {
-    // Local / Offline mode
-    const current = getLocalProjects();
-    onUpdate(current, false);
-
-    const handleStorageChange = () => {
-      onUpdate(getLocalProjects(), false);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    // In-memory mode (no localStorage for posts)
+    onUpdate(memoryProjects, false);
+    return () => {};
   }
 
   // Live Firestore mode on collection 'posts'
@@ -136,8 +109,7 @@ export function subscribeToProjects(
       (snapshot) => {
         if (snapshot.empty) {
           // If Firestore collection 'posts' is empty, provide default showcase works
-          const local = getLocalProjects();
-          onUpdate(local, true);
+          onUpdate(INITIAL_PROJECTS, true);
         } else {
           const remoteProjects: Project[] = [];
           snapshot.forEach((docSnapshot) => {
@@ -147,20 +119,20 @@ export function subscribeToProjects(
               ...data
             });
           });
-          saveLocalProjects(remoteProjects);
+          memoryProjects = remoteProjects;
           onUpdate(remoteProjects, true);
         }
       },
       (error) => {
-        console.warn('Firestore subscription notice, falling back to local storage:', error.message);
-        onUpdate(getLocalProjects(), false);
+        console.warn('Firestore subscription notice, falling back to memory:', error.message);
+        onUpdate(memoryProjects, false);
       }
     );
 
     return unsubscribe;
   } catch (err) {
     console.warn('Firestore subscription initialization error:', err);
-    onUpdate(getLocalProjects(), false);
+    onUpdate(memoryProjects, false);
     return () => {};
   }
 }
@@ -187,23 +159,20 @@ export async function addProjectToStore(
         ...projectData,
         createdAt
       };
-      const current = getLocalProjects();
-      saveLocalProjects([newProject, ...current]);
+      memoryProjects = [newProject, ...memoryProjects];
       return newProject;
     } catch (err) {
-      console.warn('Failed to add to Firestore collection "posts", saving locally:', err);
+      console.warn('Failed to add to Firestore collection "posts":', err);
     }
   }
 
-  // Fallback to local storage
+  // Fallback in-memory
   const newProject: Project = {
     id: `post-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     ...projectData,
     createdAt
   };
-  const current = getLocalProjects();
-  const updated = [newProject, ...current];
-  saveLocalProjects(updated);
+  memoryProjects = [newProject, ...memoryProjects];
   return newProject;
 }
 
@@ -220,17 +189,15 @@ export async function deleteProjectFromStore(
     try {
       await deleteDoc(doc(db, FIRESTORE_COLLECTION_NAME, id));
     } catch (err) {
-      console.warn('Failed to delete from Firestore collection "posts", deleting locally:', err);
+      console.warn('Failed to delete from Firestore collection "posts":', err);
     }
   }
 
-  const current = getLocalProjects();
-  const filtered = current.filter((p) => p.id !== id);
-  saveLocalProjects(filtered);
+  memoryProjects = memoryProjects.filter((p) => p.id !== id);
 }
 
 /**
- * Update an existing post in Firestore collection 'posts' (or local storage fallback)
+ * Update an existing post in Firestore collection 'posts'
  */
 export async function updateProjectInStore(
   id: string,
@@ -243,13 +210,12 @@ export async function updateProjectInStore(
     try {
       await updateDoc(doc(db, FIRESTORE_COLLECTION_NAME, id), updatedData);
     } catch (err) {
-      console.warn('Failed to update in Firestore collection "posts", updating locally:', err);
+      console.warn('Failed to update in Firestore collection "posts":', err);
     }
   }
 
-  const current = getLocalProjects();
   let updatedProject: Project | null = null;
-  const updatedList = current.map((p) => {
+  memoryProjects = memoryProjects.map((p) => {
     if (p.id === id) {
       updatedProject = { ...p, ...updatedData };
       return updatedProject;
@@ -258,12 +224,11 @@ export async function updateProjectInStore(
   });
 
   if (updatedProject) {
-    saveLocalProjects(updatedList);
     return updatedProject;
   }
 
   const fallback: Project = { id, ...updatedData } as Project;
-  saveLocalProjects([fallback, ...current]);
+  memoryProjects = [fallback, ...memoryProjects];
   return fallback;
 }
 
