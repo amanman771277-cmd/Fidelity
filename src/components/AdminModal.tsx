@@ -1,10 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Project, FirebaseConfigState } from '../types.ts';
 import {
   DEFAULT_ADMIN_PASSWORD,
   CLOUDINARY_SAMPLE_PRESETS,
   formatCloudinaryUrl,
-  isCloudinaryUrl
+  isCloudinaryUrl,
+  getProjectImages,
+  normalizePostImages
 } from '../utils/portfolio.ts';
 import {
   uploadImageToCloudinary,
@@ -42,6 +44,8 @@ interface AdminModalProps {
   onAddProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
   onUpdateProject: (id: string, project: Partial<Omit<Project, 'id'>>) => Promise<void>;
   onDeleteProject: (id: string) => Promise<void>;
+  heroBanners: string[];
+  onSaveHeroBanners: (banners: string[]) => Promise<void>;
   firebaseConfig: FirebaseConfigState;
   onSaveFirebaseConfig: (config: FirebaseConfigState) => void;
   isFirebaseLive: boolean;
@@ -58,21 +62,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onAddProject,
   onUpdateProject,
   onDeleteProject,
+  heroBanners,
+  onSaveHeroBanners,
   firebaseConfig,
   onSaveFirebaseConfig,
   isFirebaseLive,
   t,
   currentLang
 }) => {
-  if (!isOpen) return null;
-
   // Password state
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Tabs: 'create' | 'manage'
-  const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create');
+  // Tabs: 'create' | 'manage' | 'banners'
+  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'banners'>('create');
 
   // Editing state for existing posts
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -83,7 +87,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [descriptionAm, setDescriptionAm] = useState('');
   const [descriptionEn, setDescriptionEn] = useState('');
   const [sector, setSector] = useState<'architects' | 'branding' | 'furniture'>('architects');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageSlots, setImageSlots] = useState<[string, string, string, string]>(['', '', '', '']);
   const [clientAm, setClientAm] = useState('');
   const [clientEn, setClientEn] = useState('');
   const [locationAm, setLocationAm] = useState('');
@@ -93,11 +97,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formSuccess, setFormSuccess] = useState(false);
   const [formSuccessMessage, setFormSuccessMessage] = useState('');
 
-  // Cloudinary Direct Upload State
-  const [uploadingToCloudinary, setUploadingToCloudinary] = useState(false);
+  // Cloudinary Direct Upload State (per slot)
+  const [uploadingImageSlot, setUploadingImageSlot] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadError, setUploadError] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageFileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
 
   // Firebase config form
   const [cfgApiKey, setCfgApiKey] = useState(firebaseConfig.apiKey);
@@ -107,6 +111,30 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [cfgMessagingSenderId, setCfgMessagingSenderId] = useState(firebaseConfig.messagingSenderId);
   const [cfgAppId, setCfgAppId] = useState(firebaseConfig.appId);
   const [configSaved, setConfigSaved] = useState(false);
+
+  // Hero Banners (up to 4 slots) state
+  const [bannerSlots, setBannerSlots] = useState<[string, string, string, string]>(() => [
+    heroBanners[0] || '',
+    heroBanners[1] || '',
+    heroBanners[2] || '',
+    heroBanners[3] || ''
+  ]);
+  const [uploadingBannerSlot, setUploadingBannerSlot] = useState<number | null>(null);
+  const [bannerUploadError, setBannerUploadError] = useState('');
+  const [bannersSaving, setBannersSaving] = useState(false);
+  const [bannersSaved, setBannersSaved] = useState(false);
+  const bannerFileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
+
+  useEffect(() => {
+    setBannerSlots([
+      heroBanners[0] || '',
+      heroBanners[1] || '',
+      heroBanners[2] || '',
+      heroBanners[3] || ''
+    ]);
+  }, [heroBanners, isOpen]);
+
+  if (!isOpen) return null;
 
   // Handle password login
   const handleLogin = (e: React.FormEvent) => {
@@ -124,12 +152,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
-  // Direct Cloudinary File Upload handler
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSlotChange = (index: number, value: string) => {
+    setImageSlots((prev) => {
+      const next: [string, string, string, string] = [...prev] as [string, string, string, string];
+      next[index] = value;
+      return next;
+    });
+    if (value.trim()) setUploadError('');
+  };
+
+  // Direct Cloudinary File Upload handler for any of the 4 post image slots
+  const handlePostImageFileChange = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadingToCloudinary(true);
+    setUploadingImageSlot(index);
     setUploadProgress(0);
     setUploadError('');
 
@@ -137,7 +174,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       const secureUrl = await uploadImageToCloudinary(file, (percent) => {
         setUploadProgress(percent);
       });
-      setImageUrl(secureUrl);
+      handleImageSlotChange(index, secureUrl);
     } catch (err: any) {
       console.warn('Cloudinary upload attempt warning:', err?.message || err);
       setUploadError(
@@ -146,22 +183,29 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           : 'Image upload failed. Please try again or paste an image URL directly.'
       );
     } finally {
-      setUploadingToCloudinary(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      setUploadingImageSlot(null);
+      const inputEl = imageFileInputRefs.current[index];
+      if (inputEl) {
+        inputEl.value = '';
       }
     }
   };
 
   // Start Editing an Existing Post
   const handleStartEdit = (p: Project) => {
+    const existingImages = getProjectImages(p);
     setEditingProjectId(p.id);
     setTitleAm(p.titleAm || p.title || '');
     setTitleEn(p.title || '');
     setDescriptionAm(p.descriptionAm || p.description || '');
     setDescriptionEn(p.description || '');
     setSector(p.sector);
-    setImageUrl(p.imageUrl);
+    setImageSlots([
+      existingImages[0] || '',
+      existingImages[1] || '',
+      existingImages[2] || '',
+      existingImages[3] || ''
+    ]);
     setClientAm(p.clientAm || p.client || '');
     setClientEn(p.client || '');
     setLocationAm(p.locationAm || p.location || '');
@@ -179,7 +223,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setTitleEn('');
     setDescriptionAm('');
     setDescriptionEn('');
-    setImageUrl('');
+    setImageSlots(['', '', '', '']);
     setClientAm('');
     setClientEn('');
     setLocationAm('');
@@ -196,12 +240,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const finalTitleEn = titleEn.trim() || titleAm.trim();
     const finalDescAm = descriptionAm.trim() || descriptionEn.trim();
     const finalDescEn = descriptionEn.trim() || descriptionAm.trim();
+    const cleanedImages = normalizePostImages(imageSlots);
 
-    if (!finalTitleAm || !finalDescAm || !imageUrl.trim()) {
+    if (!finalTitleAm || !finalDescAm) {
+      return;
+    }
+
+    if (cleanedImages.length === 0) {
+      setUploadError(t.admin.atLeastOneImageError);
       return;
     }
 
     setFormSubmitting(true);
+    setUploadError('');
     try {
       if (editingProjectId) {
         // UPDATE EXISTING POST
@@ -211,7 +262,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           sector,
           description: finalDescEn,
           descriptionAm: finalDescAm,
-          imageUrl: imageUrl.trim(),
+          imageUrl: cleanedImages[0],
+          images: cleanedImages,
           client: clientEn.trim() || clientAm.trim() || undefined,
           clientAm: clientAm.trim() || clientEn.trim() || undefined,
           location: locationEn.trim() || locationAm.trim() || undefined,
@@ -231,7 +283,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           sector,
           description: finalDescEn,
           descriptionAm: finalDescAm,
-          imageUrl: imageUrl.trim(),
+          imageUrl: cleanedImages[0],
+          images: cleanedImages,
           client: clientEn.trim() || clientAm.trim() || undefined,
           clientAm: clientAm.trim() || clientEn.trim() || undefined,
           location: locationEn.trim() || locationAm.trim() || undefined,
@@ -263,7 +316,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setDescriptionAm(preset.titleAm ? `${preset.titleAm} - በፊዴሊቲ ቢዝነስ ግሩፕ ጥራት የተሰራ።` : '');
     setDescriptionEn(`${preset.title} - Crafted to perfection by Fidelity Business Group.`);
     setSector(preset.sector);
-    setImageUrl(preset.url);
+    setImageSlots([preset.url, '', '', '']);
     setClientAm('ፊዴሊቲ ክላየንት');
     setClientEn('Fidelity Client');
     setLocationAm('አዲስ አበባ');
@@ -284,6 +337,54 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     onSaveFirebaseConfig(updated);
     setConfigSaved(true);
     setTimeout(() => setConfigSaved(false), 3000);
+  };
+
+  // Handle Hero Banner slot update
+  const handleBannerSlotChange = (index: number, value: string) => {
+    setBannerSlots((prev) => {
+      const next: [string, string, string, string] = [...prev] as [string, string, string, string];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  // Direct Cloudinary upload for a specific Hero Banner slot
+  const handleBannerFileUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingBannerSlot(index);
+    setBannerUploadError('');
+    try {
+      const secureUrl = await uploadImageToCloudinary(file);
+      handleBannerSlotChange(index, secureUrl);
+    } catch (err: any) {
+      console.warn('Hero banner Cloudinary upload warning:', err?.message || err);
+      setBannerUploadError(
+        currentLang === 'am'
+          ? 'የባነር ምስል ጭነት አልተሳካም። እባክዎ የCloudinary URL በቀጥታ ያስገቡ።'
+          : 'Banner upload failed. Please try again or paste a Cloudinary URL directly.'
+      );
+    } finally {
+      setUploadingBannerSlot(null);
+      const inputEl = bannerFileInputRefs.current[index];
+      if (inputEl) inputEl.value = '';
+    }
+  };
+
+  const handleSaveBannersSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBannersSaving(true);
+    setBannerUploadError('');
+    try {
+      await onSaveHeroBanners(bannerSlots);
+      setBannersSaved(true);
+      setTimeout(() => setBannersSaved(false), 4500);
+    } catch (err: any) {
+      setBannerUploadError(err?.message || 'Failed to save hero banners');
+    } finally {
+      setBannersSaving(false);
+    }
   };
 
   return (
@@ -429,6 +530,18 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <List className="w-3.5 h-3.5" />
                 <span>{t.admin.tabManage} ({projects.length})</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab('banners')}
+                className={`px-3.5 py-1.5 rounded text-xs font-semibold tracking-wider uppercase transition-all flex items-center gap-2 shrink-0 ${
+                  activeTab === 'banners'
+                    ? 'bg-[#d4af37] text-slate-950 gold-glow font-bold'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>{t.admin.tabBanners}</span>
+              </button>
             </div>
 
             {/* Tab Panes */}
@@ -449,83 +562,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   {formSuccess && (
                     <div className="p-4 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 shrink-0 text-emerald-400" />
-                      <span>{t.admin.publishSuccess}</span>
+                      <span>{formSuccessMessage || t.admin.publishSuccess}</span>
                     </div>
                   )}
 
-                  {/* 1. CLOUDINARY DIRECT UPLOAD COMPONENT */}
-                  <div className="p-5 rounded-xl bg-[#0e121a] border border-[#d4af37]/30 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <UploadCloud className="w-4 h-4 text-[#d4af37]" />
-                        <span className="text-xs font-bold text-[#f3d375] uppercase tracking-wider">
-                          {currentLang === 'am'
-                            ? 'ምስል ከስልክ/ኮምፒውተር ይስቀሉ (Cloudinary Direct Upload)'
-                            : 'Direct Device Upload to Cloudinary'}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/60 border border-slate-700 text-slate-400">
-                        {CLOUDINARY_CLOUD_NAME} • {CLOUDINARY_UPLOAD_PRESET}
-                      </span>
-                    </div>
-
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="cloudinaryFileInput"
-                    />
-
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all ${
-                        uploadingToCloudinary
-                          ? 'border-[#d4af37] bg-[#d4af37]/5'
-                          : 'border-slate-700 hover:border-[#d4af37]/60 bg-[#080a0f] hover:bg-[#0f131a]'
-                      }`}
-                    >
-                      {uploadingToCloudinary ? (
-                        <div className="space-y-3">
-                          <Loader2 className="w-8 h-8 text-[#d4af37] animate-spin mx-auto" />
-                          <div className="text-xs font-semibold text-white">
-                            {currentLang === 'am' ? 'ምስሉ ወደ ክላውዲነሪ እየተጫነ ነው...' : 'Uploading directly to Cloudinary...'} {uploadProgress}%
-                          </div>
-                          <div className="w-full max-w-xs mx-auto bg-slate-800 rounded-full h-2 overflow-hidden">
-                            <div 
-                              className="bg-gradient-to-r from-[#aa7c11] to-[#d4af37] h-full transition-all duration-300"
-                              style={{ width: `${uploadProgress}%` }}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <UploadCloud className="w-8 h-8 text-slate-500 mx-auto" />
-                          <div className="text-xs font-bold text-slate-200">
-                            {currentLang === 'am'
-                              ? 'ምስል ለመምረጥ እዚህ ይጫኑ (ከስልክ ወይም ከኮምፒውተር)'
-                              : 'Click to select image file from your device'}
-                          </div>
-                          <p className="text-[11px] text-slate-500">
-                            {currentLang === 'am'
-                              ? `ፋይሉ በቀጥታ ወደ Cloudinary ("${CLOUDINARY_CLOUD_NAME}" / "${CLOUDINARY_UPLOAD_PRESET}") ይሰቀላል`
-                              : `Uploads directly to Cloudinary ("${CLOUDINARY_CLOUD_NAME}" / preset "${CLOUDINARY_UPLOAD_PRESET}")`}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {uploadError && (
-                      <div className="flex items-center gap-2 text-xs text-rose-400 py-1">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{uploadError}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* POST DETAILS FORM (BILINGUAL & EDIT CAPABLE) */}
-                  <form onSubmit={handleSavePost} className="space-y-4">
+                  {/* POST DETAILS FORM (BILINGUAL, MULTI-IMAGE & EDIT CAPABLE) */}
+                  <form onSubmit={handleSavePost} className="space-y-5">
                     {/* Editing Banner */}
                     {editingProjectId && (
                       <div className="p-3.5 rounded-lg bg-[#d4af37]/15 border border-[#d4af37]/60 flex items-center justify-between gap-3 text-xs">
@@ -546,6 +588,113 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         </button>
                       </div>
                     )}
+
+                    {/* Multi-Image Cloudinary Upload Grid (Up to 4 images) */}
+                    <div className="p-4 sm:p-5 rounded-xl bg-[#0e121a] border border-[#d4af37]/30 space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <UploadCloud className="w-4 h-4 text-[#d4af37]" />
+                          <span className="text-xs font-bold text-[#f3d375] uppercase tracking-wider">
+                            {t.admin.fieldImagesTitle}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/60 border border-slate-700 text-slate-400">
+                          {CLOUDINARY_CLOUD_NAME} &bull; {CLOUDINARY_UPLOAD_PRESET}
+                        </span>
+                      </div>
+
+                      {uploadError && (
+                        <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-950/40 border border-rose-500/30 rounded-lg p-2.5">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        {imageSlots.map((slotUrl, slotIdx) => {
+                          const isUploadingThisSlot = uploadingImageSlot === slotIdx;
+                          const hasOtherSlot = imageSlots.some((u, i) => i !== slotIdx && u.trim().length > 0);
+                          return (
+                            <div
+                              key={slotIdx}
+                              className="p-3.5 rounded-xl bg-[#080a0f] border border-[#d4af37]/25 space-y-2.5"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-[#f3d375] font-mono uppercase tracking-wider">
+                                  {t.admin.imageSlotLabel} #{slotIdx + 1}{slotIdx === 0 ? ' *' : ''}
+                                </span>
+                                {slotUrl.trim() && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleImageSlotChange(slotIdx, '')}
+                                    className="text-[11px] text-slate-400 hover:text-rose-400 flex items-center gap-1"
+                                    title="Clear Image"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <input
+                                type="url"
+                                required={slotIdx === 0 && !hasOtherSlot}
+                                value={slotUrl}
+                                onChange={(e) => handleImageSlotChange(slotIdx, e.target.value)}
+                                placeholder="https://res.cloudinary.com/..."
+                                className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 focus:border-[#d4af37] text-xs text-white placeholder-slate-600 outline-none font-mono"
+                              />
+
+                              <div className="flex items-center justify-between gap-2">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  ref={(el) => {
+                                    imageFileInputRefs.current[slotIdx] = el;
+                                  }}
+                                  onChange={(e) => handlePostImageFileChange(slotIdx, e)}
+                                  className="hidden"
+                                  id={`postImageFileInput-${slotIdx}`}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={uploadingImageSlot !== null}
+                                  onClick={() => imageFileInputRefs.current[slotIdx]?.click()}
+                                  className="px-3 py-1.5 rounded bg-[#d4af37]/15 border border-[#d4af37]/40 hover:bg-[#d4af37]/25 text-[#f3d375] text-[11px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                                >
+                                  {isUploadingThisSlot ? (
+                                    <>
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      <span>{uploadProgress}%</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UploadCloud className="w-3.5 h-3.5" />
+                                      <span>{t.admin.uploadSlotBtn}</span>
+                                    </>
+                                  )}
+                                </button>
+                                {slotUrl.trim() && isCloudinaryUrl(slotUrl) && (
+                                  <span className="text-[10px] text-emerald-400 font-mono">Cloudinary</span>
+                                )}
+                              </div>
+
+                              {slotUrl.trim() && (
+                                <div className="aspect-[16/9] rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+                                  <img
+                                    src={formatCloudinaryUrl(slotUrl.trim())}
+                                    alt={`Post Image ${slotIdx + 1}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
 
                     {/* Dual-Language Titles */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -594,52 +743,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         <option value="furniture">{t.sectors.furniture.name}</option>
                       </select>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-1.5">
-                        {t.admin.fieldImageUrl}
-                      </label>
-                      <input
-                        type="url"
-                        required
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="https://res.cloudinary.com/... or uploaded image URL"
-                        className="w-full px-3.5 py-2.5 rounded bg-[#10141e] border border-slate-700 focus:border-[#d4af37] text-xs text-white placeholder-slate-600 outline-none font-mono"
-                      />
-                      {imageUrl && (
-                        <div className="mt-2 text-[11px] flex items-center gap-2">
-                          {isCloudinaryUrl(imageUrl) ? (
-                            <span className="text-emerald-400 font-mono flex items-center gap-1">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              <span>{t.admin.cloudinaryDetected}</span>
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 font-mono">
-                              {t.admin.standardUrl}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Image Preview Box */}
-                    {imageUrl && (
-                      <div className="relative aspect-[16/9] max-h-48 rounded-lg overflow-hidden border border-[#d4af37]/40 bg-slate-950">
-                        <img
-                          src={formatCloudinaryUrl(imageUrl)}
-                          alt="Live Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
-                          }}
-                        />
-                        <div className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded bg-black/85 text-[10px] text-white font-mono flex items-center gap-1.5">
-                          <CheckCircle className="w-3 h-3 text-emerald-400" />
-                          <span>{t.admin.livePreview}</span>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Dual-Language Descriptions */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -721,7 +824,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
                     <button
                       type="submit"
-                      disabled={formSubmitting || uploadingToCloudinary}
+                      disabled={formSubmitting || uploadingImageSlot !== null}
                       className="w-full py-3 rounded bg-gradient-to-r from-[#aa7c11] via-[#d4af37] to-[#aa7c11] text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all gold-glow disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {formSubmitting ? (
@@ -769,6 +872,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                     {projects.map((p, index) => {
                       const displayTitle = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
                       const displayDesc = (currentLang === 'am' && p.descriptionAm) ? p.descriptionAm : p.description;
+                      const postImgs = getProjectImages(p);
 
                       return (
                         <div
@@ -777,7 +881,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         >
                           <div className="flex items-center gap-4">
                             <img
-                              src={formatCloudinaryUrl(p.imageUrl)}
+                              src={formatCloudinaryUrl(postImgs[0])}
                               alt={displayTitle}
                               className="w-16 h-12 rounded object-cover bg-slate-900 border border-slate-800 shrink-0"
                               onError={(e) => {
@@ -796,6 +900,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                               </p>
                               <div className="text-[10px] text-slate-500 font-mono mt-1">
                                 ID: {p.id} &bull; {p.year || '2025'} &bull; {p.client || 'Fidelity Portfolio'}
+                                {postImgs.length > 1 ? ` • ${postImgs.length} photos` : ''}
                               </div>
                             </div>
                           </div>
@@ -811,7 +916,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                               <span>{t.admin.editPost}</span>
                             </button>
                             <a
-                              href={p.imageUrl}
+                              href={postImgs[0]}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-2 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
@@ -835,6 +940,127 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* TAB 3: HERO BANNERS SLIDER MANAGEMENT */}
+              {activeTab === 'banners' && (
+                <div className="max-w-3xl mx-auto space-y-6">
+                  <div>
+                    <h3 className="font-heading text-xl font-bold text-white">{t.admin.bannersTitle}</h3>
+                    <p className="text-xs text-slate-400 mt-1">{t.admin.bannersSubtitle}</p>
+                  </div>
+
+                  {bannersSaved && (
+                    <div className="p-4 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 shrink-0 text-emerald-400" />
+                      <span>{t.admin.bannersSaved}</span>
+                    </div>
+                  )}
+
+                  {bannerUploadError && (
+                    <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{bannerUploadError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveBannersSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {bannerSlots.map((slotUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-xl bg-[#0e121a] border border-[#d4af37]/25 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-[#f3d375] font-mono uppercase tracking-wider">
+                              {t.admin.bannerSlotLabel} #{idx + 1}
+                            </span>
+                            {slotUrl.trim() && (
+                              <button
+                                type="button"
+                                onClick={() => handleBannerSlotChange(idx, '')}
+                                className="text-[11px] text-slate-400 hover:text-rose-400 flex items-center gap-1"
+                                title="Clear Banner URL"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          <input
+                            type="url"
+                            value={slotUrl}
+                            onChange={(e) => handleBannerSlotChange(idx, e.target.value)}
+                            placeholder="https://res.cloudinary.com/..."
+                            className="w-full px-3 py-2 rounded bg-[#10141e] border border-slate-700 focus:border-[#d4af37] text-xs text-white placeholder-slate-600 outline-none font-mono"
+                          />
+
+                          <div className="flex items-center justify-between gap-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              ref={(el) => {
+                                bannerFileInputRefs.current[idx] = el;
+                              }}
+                              onChange={(e) => handleBannerFileUpload(idx, e)}
+                              className="hidden"
+                              id={`heroBannerFileInput-${idx}`}
+                            />
+                            <button
+                              type="button"
+                              disabled={uploadingBannerSlot === idx}
+                              onClick={() => bannerFileInputRefs.current[idx]?.click()}
+                              className="px-3 py-1.5 rounded bg-[#d4af37]/15 border border-[#d4af37]/40 hover:bg-[#d4af37]/25 text-[#f3d375] text-[11px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              {uploadingBannerSlot === idx ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>{currentLang === 'am' ? 'በመጫን ላይ...' : 'Uploading...'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UploadCloud className="w-3.5 h-3.5" />
+                                  <span>{currentLang === 'am' ? 'ምስል ስቀል' : 'Upload to Cloudinary'}</span>
+                                </>
+                              )}
+                            </button>
+                            {isCloudinaryUrl(slotUrl) && (
+                              <span className="text-[10px] text-emerald-400 font-mono">Cloudinary</span>
+                            )}
+                          </div>
+
+                          {slotUrl.trim() && (
+                            <div className="aspect-[16/9] rounded-lg overflow-hidden border border-slate-800 bg-slate-950">
+                              <img
+                                src={formatCloudinaryUrl(slotUrl.trim())}
+                                alt={`Banner Slot ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={bannersSaving || uploadingBannerSlot !== null}
+                      className="w-full py-3 rounded bg-gradient-to-r from-[#aa7c11] via-[#d4af37] to-[#aa7c11] text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all gold-glow disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {bannersSaving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                          <span>{t.admin.savingBannersBtn}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Database className="w-4 h-4" />
+                          <span>{t.admin.saveBannersBtn}</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
                 </div>
               )}
             </div>

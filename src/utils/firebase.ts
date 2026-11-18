@@ -6,19 +6,56 @@ import {
   addDoc,
   deleteDoc,
   updateDoc,
+  setDoc,
+  getDocFromServer,
   doc,
   query,
   orderBy,
   Firestore
 } from 'firebase/firestore';
 import { Project, FirebaseConfigState } from '../types.ts';
-import { DEFAULT_FIREBASE_CONFIG, INITIAL_PROJECTS } from './portfolio.ts';
+import { DEFAULT_FIREBASE_CONFIG, INITIAL_PROJECTS, HERO_BANNER_URL, normalizePostImages } from './portfolio.ts';
 
 const STORAGE_KEY_CONFIG = 'fidelity_business_group_firebase_config_v3';
 export const FIRESTORE_COLLECTION_NAME = 'posts';
+export const HERO_BANNERS_COLLECTION = 'settings';
+export const HERO_BANNERS_DOC_ID = 'hero_banners';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+  };
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    operationType,
+    path,
+    authInfo: {
+      userId: null
+    }
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 let activeApp: FirebaseApp | null = null;
 let activeDb: Firestore | null = null;
+let connectionTested = false;
+let memoryHeroBanners: string[] = [HERO_BANNER_URL];
 
 export function getStoredFirebaseConfig(): FirebaseConfigState {
   try {
@@ -65,6 +102,14 @@ export function initFirebaseService(config: FirebaseConfigState): Firestore | nu
       activeDb = getFirestore(activeApp, config.firestoreDatabaseId);
     } else {
       activeDb = getFirestore(activeApp);
+    }
+    if (!connectionTested && activeDb) {
+      connectionTested = true;
+      getDocFromServer(doc(activeDb, 'test', 'connection')).catch((error) => {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
+          console.error('Please check your Firebase configuration.');
+        }
+      });
     }
     return activeDb;
   } catch (err) {
@@ -145,6 +190,16 @@ export function subscribeToProjects(
   }
 }
 
+function stripUndefined<T extends Record<string, any>>(obj: T): Record<string, any> {
+  const clean: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) {
+      clean[k] = v;
+    }
+  }
+  return clean;
+}
+
 /**
  * Add a new post to Firestore collection 'posts' (or local storage fallback)
  */
@@ -153,18 +208,24 @@ export async function addProjectToStore(
   config: FirebaseConfigState
 ): Promise<Project> {
   const createdAt = Date.now();
+  const normalizedImages = normalizePostImages(projectData.images || [], projectData.imageUrl);
+  const preparedData = stripUndefined({
+    ...projectData,
+    imageUrl: normalizedImages[0] || projectData.imageUrl,
+    images: normalizedImages
+  });
   const db = initFirebaseService(config);
 
   if (db) {
     try {
       const colRef = collection(db, FIRESTORE_COLLECTION_NAME);
       const docRef = await addDoc(colRef, {
-        ...projectData,
+        ...preparedData,
         createdAt
       });
       const newProject: Project = {
         id: docRef.id,
-        ...projectData,
+        ...(preparedData as Omit<Project, 'id' | 'createdAt'>),
         createdAt
       };
       memoryProjects = [newProject, ...memoryProjects];
@@ -177,7 +238,7 @@ export async function addProjectToStore(
   // Fallback in-memory
   const newProject: Project = {
     id: `post-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    ...projectData,
+    ...(preparedData as Omit<Project, 'id' | 'createdAt'>),
     createdAt
   };
   memoryProjects = [newProject, ...memoryProjects];
@@ -212,11 +273,21 @@ export async function updateProjectInStore(
   updatedData: Partial<Omit<Project, 'id'>>,
   config: FirebaseConfigState
 ): Promise<Project> {
+  const normalizedImages =
+    updatedData.images || updatedData.imageUrl
+      ? normalizePostImages(updatedData.images || [], updatedData.imageUrl)
+      : undefined;
+  const preparedData = stripUndefined({
+    ...updatedData,
+    ...(normalizedImages && normalizedImages.length > 0
+      ? { imageUrl: normalizedImages[0], images: normalizedImages }
+      : {})
+  });
   const db = initFirebaseService(config);
 
   if (db && !id.startsWith('fid-')) {
     try {
-      await updateDoc(doc(db, FIRESTORE_COLLECTION_NAME, id), updatedData);
+      await updateDoc(doc(db, FIRESTORE_COLLECTION_NAME, id), preparedData);
     } catch (err) {
       console.warn('Failed to update in Firestore collection "posts":', err);
     }
@@ -225,7 +296,7 @@ export async function updateProjectInStore(
   let updatedProject: Project | null = null;
   memoryProjects = memoryProjects.map((p) => {
     if (p.id === id) {
-      updatedProject = { ...p, ...updatedData };
+      updatedProject = { ...p, ...preparedData };
       return updatedProject;
     }
     return p;
@@ -235,8 +306,91 @@ export async function updateProjectInStore(
     return updatedProject;
   }
 
-  const fallback: Project = { id, ...updatedData } as Project;
+  const fallback: Project = { id, ...preparedData } as Project;
   memoryProjects = [fallback, ...memoryProjects];
   return fallback;
 }
+
+export function normalizeHeroBanners(banners: string[]): string[] {
+  const cleaned = banners
+    .map((u) => (typeof u === 'string' ? u.trim() : ''))
+    .filter((u) => u.length > 0)
+    .slice(0, 4);
+  return cleaned.length > 0 ? cleaned : [HERO_BANNER_URL];
+}
+
+/**
+ * Subscribe to real-time Hero Banner slider URLs from Firestore 'settings/hero_banners'.
+ */
+export function subscribeToHeroBanners(
+  config: FirebaseConfigState,
+  onUpdate: (banners: string[]) => void
+): () => void {
+  const db = initFirebaseService(config);
+
+  if (!db) {
+    onUpdate(memoryHeroBanners);
+    return () => {};
+  }
+
+  try {
+    const docRef = doc(db, HERO_BANNERS_COLLECTION, HERO_BANNERS_DOC_ID);
+    const unsubscribe = onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (Array.isArray(data?.banners) && data.banners.length > 0) {
+            const normalized = normalizeHeroBanners(data.banners);
+            memoryHeroBanners = normalized;
+            onUpdate(normalized);
+            return;
+          }
+        }
+        onUpdate([HERO_BANNER_URL]);
+      },
+      (error) => {
+        console.warn('Hero banners subscription fallback:', error.message);
+        onUpdate(memoryHeroBanners);
+      }
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn('Hero banners subscription error:', err);
+    onUpdate(memoryHeroBanners);
+    return () => {};
+  }
+}
+
+/**
+ * Save up to 4 Hero Banner URLs to Firestore 'settings/hero_banners'.
+ */
+export async function saveHeroBannersToStore(
+  banners: string[],
+  config: FirebaseConfigState
+): Promise<string[]> {
+  const normalized = normalizeHeroBanners(banners);
+  memoryHeroBanners = normalized;
+
+  const db = initFirebaseService(config);
+  const path = `${HERO_BANNERS_COLLECTION}/${HERO_BANNERS_DOC_ID}`;
+
+  if (db) {
+    try {
+      await setDoc(doc(db, HERO_BANNERS_COLLECTION, HERO_BANNERS_DOC_ID), {
+        banners: normalized,
+        updatedAt: Date.now()
+      });
+    } catch (err: any) {
+      if (err?.message?.includes('Missing or insufficient permissions') || err?.code === 'permission-denied') {
+        handleFirestoreError(err, OperationType.WRITE, path);
+      }
+      console.warn('Failed to save hero banners to Firestore:', err);
+      throw err;
+    }
+  }
+
+  return normalized;
+}
+
 

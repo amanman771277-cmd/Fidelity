@@ -11,6 +11,7 @@
         "description": { "type": "string", "maxLength": 2000 },
         "descriptionAm": { "type": "string", "maxLength": 2000 },
         "imageUrl": { "type": "string", "maxLength": 1000 },
+        "images": { "type": "array", "description": "Ordered list of up to 4 Cloudinary image URLs for the post slider" },
         "client": { "type": "string", "maxLength": 200 },
         "clientAm": { "type": "string", "maxLength": 200 },
         "location": { "type": "string", "maxLength": 200 },
@@ -20,12 +21,29 @@
         "createdAt": { "type": "number" }
       },
       "required": ["title", "sector", "description", "imageUrl"]
+    },
+    "HeroBanners": {
+      "title": "HeroBanners",
+      "description": "Up to 4 main hero slider banner image URLs configured via the Admin Panel",
+      "type": "object",
+      "properties": {
+        "banners": {
+          "type": "array",
+          "description": "Ordered list of up to 4 Cloudinary image URLs for the hero slider"
+        },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["banners"]
     }
   },
   "firestore": {
     "/posts/{postId}": {
       "schema": "Post",
       "description": "Collection of global public portfolio posts"
+    },
+    "/settings/{settingId}": {
+      "schema": "HeroBanners",
+      "description": "Global site settings including the Hero Slider banners document (hero_banners)"
     }
   }
 }

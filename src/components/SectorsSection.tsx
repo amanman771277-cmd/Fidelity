@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, Send, ArrowRight } from 'lucide-react';
 import { TELEGRAM_URL, TELEGRAM_HANDLE, SECTOR_LOGOS } from '../utils/portfolio.ts';
 import { Translations, Language } from '../utils/i18n.ts';
@@ -10,6 +10,41 @@ interface SectorsSectionProps {
 }
 
 export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector, t }) => {
+  const [visibleCards, setVisibleCards] = useState<[boolean, boolean, boolean]>([false, false, false]);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      setVisibleCards([true, true, true]);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const idxAttr = entry.target.getAttribute('data-sector-index');
+          const idx = idxAttr ? Number(idxAttr) : -1;
+          if (idx >= 0 && idx <= 2) {
+            setVisibleCards((prev) => {
+              if (prev[idx]) return prev;
+              const next: [boolean, boolean, boolean] = [...prev] as [boolean, boolean, boolean];
+              next[idx] = true;
+              return next;
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    cardRefs.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
   return (
     <section id="sectors" className="py-24 bg-[#07090d] border-b border-[#d4af37]/20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +66,13 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Sector 1: Architects & Engineers */}
-          <div className="dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all">
+          <div
+            ref={(el) => { cardRefs.current[0] = el; }}
+            data-sector-index={0}
+            className={`dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all duration-700 ease-out delay-0 ${
+              visibleCards[0] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/5 rounded-bl-full pointer-events-none group-hover:bg-[#d4af37]/10 transition-colors" />
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -100,7 +141,13 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
           </div>
 
           {/* Sector 2: Branding & Advertising */}
-          <div className="dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all">
+          <div
+            ref={(el) => { cardRefs.current[1] = el; }}
+            data-sector-index={1}
+            className={`dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all duration-700 ease-out delay-150 ${
+              visibleCards[1] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/5 rounded-bl-full pointer-events-none group-hover:bg-[#d4af37]/10 transition-colors" />
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -169,7 +216,13 @@ export const SectorsSection: React.FC<SectorsSectionProps> = ({ onFilterBySector
           </div>
 
           {/* Sector 3: Furniture & Interior Design */}
-          <div className="dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all">
+          <div
+            ref={(el) => { cardRefs.current[2] = el; }}
+            data-sector-index={2}
+            className={`dark-card rounded-xl p-8 flex flex-col justify-between relative group hover:border-[#d4af37] transition-all duration-700 ease-out delay-300 ${
+              visibleCards[2] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/5 rounded-bl-full pointer-events-none group-hover:bg-[#d4af37]/10 transition-colors" />
             <div>
               <div className="flex items-center justify-between mb-6">

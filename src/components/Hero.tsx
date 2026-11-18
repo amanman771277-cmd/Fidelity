@@ -1,15 +1,210 @@
-import React from 'react';
-import { Send, ArrowDown, ChevronRight } from 'lucide-react';
-import { TELEGRAM_URL, SECTOR_LOGOS, HERO_BANNER_URL } from '../utils/portfolio.ts';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Send, ArrowDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { TELEGRAM_URL, SECTOR_LOGOS, HERO_BANNER_URL, formatCloudinaryUrl } from '../utils/portfolio.ts';
 import { Translations, Language } from '../utils/i18n.ts';
 
 interface HeroProps {
   onSelectSector: (sector: 'all' | 'architects' | 'branding' | 'furniture') => void;
+  heroBanners?: string[];
   t: Translations;
   currentLang: Language;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
+export const Hero: React.FC<HeroProps> = ({ onSelectSector, heroBanners, t }) => {
+  const slides = useMemo(() => {
+    const valid = (heroBanners || [])
+      .map((u) => (typeof u === 'string' ? u.trim() : ''))
+      .filter((u) => u.length > 0)
+      .slice(0, 4);
+    return valid.length > 0 ? valid : [HERO_BANNER_URL];
+  }, [heroBanners]);
+
+  const hasMultiple = slides.length > 1;
+
+  // Cloned-edge slides array for seamless infinite forward & backward looping:
+  // [lastClone, ...slides, firstClone]
+  const extendedSlides = useMemo(() => {
+    if (!hasMultiple) return slides;
+    return [slides[slides.length - 1], ...slides, slides[0]];
+  }, [slides, hasMultiple]);
+
+  const [trackIndex, setTrackIndex] = useState<number>(hasMultiple ? 1 : 0);
+  const [transitionEnabled, setTransitionEnabled] = useState<boolean>(true);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const snapFallbackTimerRef = useRef<number | null>(null);
+  const reenableRafRef = useRef<number | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (snapFallbackTimerRef.current !== null) {
+      window.clearTimeout(snapFallbackTimerRef.current);
+      snapFallbackTimerRef.current = null;
+    }
+    if (reenableRafRef.current !== null) {
+      window.cancelAnimationFrame(reenableRafRef.current);
+      reenableRafRef.current = null;
+    }
+  }, []);
+
+  // Reset slider cleanly when the list of slides changes
+  useEffect(() => {
+    clearTimers();
+    setTransitionEnabled(false);
+    setTrackIndex(slides.length > 1 ? 1 : 0);
+    const raf = window.requestAnimationFrame(() => {
+      reenableRafRef.current = window.requestAnimationFrame(() => {
+        setTransitionEnabled(true);
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(raf);
+      clearTimers();
+    };
+  }, [slides, clearTimers]);
+
+  // Snap silently from cloned edge back to the corresponding real slide
+  const snapIfOnClone = useCallback(
+    (idx: number) => {
+      if (!hasMultiple) return;
+      if (idx === slides.length + 1) {
+        setTransitionEnabled(false);
+        setTrackIndex(1);
+        window.requestAnimationFrame(() => {
+          reenableRafRef.current = window.requestAnimationFrame(() => {
+            setTransitionEnabled(true);
+          });
+        });
+      } else if (idx === 0) {
+        setTransitionEnabled(false);
+        setTrackIndex(slides.length);
+        window.requestAnimationFrame(() => {
+          reenableRafRef.current = window.requestAnimationFrame(() => {
+            setTransitionEnabled(true);
+          });
+        });
+      }
+    },
+    [hasMultiple, slides.length]
+  );
+
+  // Guard fallback in case browser skips transitionend (e.g. background tab)
+  useEffect(() => {
+    if (!hasMultiple) return;
+    if (trackIndex === 0 || trackIndex === slides.length + 1) {
+      snapFallbackTimerRef.current = window.setTimeout(() => {
+        snapIfOnClone(trackIndex);
+      }, 750);
+      return () => {
+        if (snapFallbackTimerRef.current !== null) {
+          window.clearTimeout(snapFallbackTimerRef.current);
+          snapFallbackTimerRef.current = null;
+        }
+      };
+    }
+  }, [trackIndex, hasMultiple, slides.length, snapIfOnClone]);
+
+  const handleNext = useCallback(() => {
+    if (!hasMultiple) return;
+    setTransitionEnabled(true);
+    setTrackIndex((prev) => {
+      if (prev >= slides.length + 1) return 1;
+      return prev + 1;
+    });
+  }, [hasMultiple, slides.length]);
+
+  const handlePrev = useCallback(() => {
+    if (!hasMultiple) return;
+    setTransitionEnabled(true);
+    setTrackIndex((prev) => {
+      if (prev <= 0) return slides.length;
+      return prev - 1;
+    });
+  }, [hasMultiple, slides.length]);
+
+  const handleGoToDot = useCallback(
+    (dotIdx: number) => {
+      if (!hasMultiple) return;
+      setTransitionEnabled(true);
+      setTrackIndex(dotIdx + 1);
+    },
+    [hasMultiple]
+  );
+
+  // Auto-playing continuous forward carousel when multiple banners exist
+  useEffect(() => {
+    if (!hasMultiple || isPaused) return;
+    const timer = window.setInterval(() => {
+      handleNext();
+    }, 4500);
+    return () => window.clearInterval(timer);
+  }, [hasMultiple, isPaused, handleNext]);
+
+  // Active real dot index (0 .. slides.length - 1)
+  const activeDotIndex = !hasMultiple
+    ? 0
+    : trackIndex === 0
+      ? slides.length - 1
+      : trackIndex >= slides.length + 1
+        ? 0
+        : trackIndex - 1;
+
+  const heroViewportRef = useRef<HTMLDivElement | null>(null);
+  const heroTouchStartX = useRef<number | null>(null);
+  const heroTouchStartY = useRef<number | null>(null);
+  const heroGestureLock = useRef<'x' | 'y' | null>(null);
+  const [heroDragOffsetPx, setHeroDragOffsetPx] = useState(0);
+  const [isHeroSwiping, setIsHeroSwiping] = useState(false);
+
+  const resetHeroTouch = () => {
+    heroTouchStartX.current = null;
+    heroTouchStartY.current = null;
+    heroGestureLock.current = null;
+    setHeroDragOffsetPx(0);
+    setIsHeroSwiping(false);
+    setIsPaused(false);
+  };
+
+  const handleHeroTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    setIsPaused(true);
+    heroTouchStartX.current = e.touches[0].clientX;
+    heroTouchStartY.current = e.touches[0].clientY;
+    heroGestureLock.current = null;
+    setHeroDragOffsetPx(0);
+    setIsHeroSwiping(false);
+  };
+
+  const handleHeroTouchMove = (e: React.TouchEvent) => {
+    if (!hasMultiple || heroTouchStartX.current === null || heroTouchStartY.current === null) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const dx = touch.clientX - heroTouchStartX.current;
+    const dy = touch.clientY - heroTouchStartY.current;
+    if (heroGestureLock.current === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      heroGestureLock.current = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+    }
+    if (heroGestureLock.current === 'y') return;
+    if (e.cancelable) e.preventDefault();
+    setIsHeroSwiping(true);
+    setHeroDragOffsetPx(dx);
+  };
+
+  const handleHeroTouchEnd = (e: React.TouchEvent) => {
+    if (!hasMultiple || heroTouchStartX.current === null) {
+      resetHeroTouch();
+      return;
+    }
+    const endX = e.changedTouches[0]?.clientX ?? heroTouchStartX.current;
+    const diff = endX - heroTouchStartX.current;
+    const width = heroViewportRef.current?.clientWidth || 320;
+    const threshold = Math.min(48, Math.max(30, width * 0.14));
+    if (heroGestureLock.current === 'x' && Math.abs(diff) > threshold) {
+      if (diff < 0) handleNext();
+      else handlePrev();
+    }
+    resetHeroTouch();
+  };
+
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden border-b border-[#d4af37]/20 bg-[#07090d] py-16 sm:py-24 lg:py-28">
       {/* Subtle luxury ambient gold gradients & geometric grid */}
@@ -22,7 +217,7 @@ export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
         
         {/* Prestige Motto Badge */}
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 mb-6 sm:mb-8 backdrop-blur-sm shadow-[0_0_20px_rgba(212,175,55,0.15)] animate-fade-in">
@@ -32,14 +227,87 @@ export const Hero: React.FC<HeroProps> = ({ onSelectSector, t }) => {
           </span>
         </div>
 
-        {/* Big Hero Corporate Logo Banner Image */}
-        <div className="w-full max-w-4xl lg:max-w-5xl my-4 sm:my-6 rounded-2xl overflow-hidden border-2 border-[#d4af37]/40 shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-[#0a0d14] group hover:border-[#d4af37] transition-all duration-500">
-          <img
-            src={HERO_BANNER_URL}
-            alt="Fidelity Business Group Big Hero Corporate Banner"
-            className="w-full h-auto max-h-[320px] sm:max-h-[460px] md:max-h-[520px] object-cover sm:object-contain mx-auto group-hover:scale-[1.01] transition-transform duration-700"
-            loading="eager"
-          />
+        {/* Uniform 16:9 Multi-Image Hero Slider with Seamless Infinite Loop */}
+        <div
+          ref={heroViewportRef}
+          className="relative w-full max-w-4xl mx-auto my-4 sm:my-6 aspect-video rounded-2xl overflow-hidden border-2 border-[#d4af37]/40 shadow-[0_0_50px_rgba(212,175,55,0.3)] group hover:border-[#d4af37] transition-colors duration-500 bg-[#07090d] select-none touch-pan-y overscroll-x-contain"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={handleHeroTouchStart}
+          onTouchMove={handleHeroTouchMove}
+          onTouchEnd={handleHeroTouchEnd}
+          onTouchCancel={resetHeroTouch}
+        >
+          <div
+            onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && e.propertyName === 'transform') {
+                snapIfOnClone(trackIndex);
+              }
+            }}
+            className={`flex w-full h-full ${transitionEnabled && !isHeroSwiping ? 'transition-transform duration-700 ease-out' : ''}`}
+            style={{
+              transform: `translate3d(calc(-${trackIndex * 100}% + ${heroDragOffsetPx}px), 0, 0)`,
+              transition: transitionEnabled && !isHeroSwiping ? undefined : 'none'
+            }}
+          >
+            {extendedSlides.map((bannerUrl, idx) => (
+              <div key={`${bannerUrl}-${idx}`} className="w-full h-full shrink-0 aspect-video overflow-hidden bg-[#07090d]">
+                <img
+                  src={formatCloudinaryUrl(bannerUrl)}
+                  alt={`Fidelity Business Group Big Hero Corporate Banner ${idx + 1}`}
+                  draggable={false}
+                  className="w-full h-full object-cover object-center block select-none"
+                  loading={idx <= 1 ? 'eager' : 'lazy'}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== HERO_BANNER_URL) {
+                      target.src = HERO_BANNER_URL;
+                    }
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Previous / Next Arrows */}
+          {hasMultiple && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="Previous Hero Banner"
+                className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-[#d4af37]/85 text-[#fce8a6] hover:text-slate-950 border border-white/15 hover:border-[#d4af37] backdrop-blur-md flex items-center justify-center transition-all shadow-md z-10"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Next Hero Banner"
+                className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-[#d4af37]/85 text-[#fce8a6] hover:text-slate-950 border border-white/15 hover:border-[#d4af37] backdrop-blur-md flex items-center justify-center transition-all shadow-md z-10"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {/* Dot Indicators */}
+              <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/15">
+                {slides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleGoToDot(idx)}
+                    aria-label={`Go to banner ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      idx === activeDotIndex
+                        ? 'w-4 bg-[#d4af37]/90'
+                        : 'w-1.5 bg-white/45 hover:bg-[#fce8a6]/80'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Corporate Title */}

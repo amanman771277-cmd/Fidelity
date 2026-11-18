@@ -1,9 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isValidHeroBanners(data) {
+      return data.keys().hasAll(['banners'])
+        && data.keys().hasOnly(['banners', 'updatedAt'])
+        && data.banners is list
+        && data.banners.size() >= 1
+        && data.banners.size() <= 4
+        && data.banners[0] is string
+        && data.banners[0].size() > 0
+        && data.banners[0].size() <= 1000
+        && (!('updatedAt' in data) || data.updatedAt is number);
+    }
+
     match /posts/{postId} {
       allow read: if true;
       allow create, update, delete: if true;
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update: if settingId == 'hero_banners' && isValidHeroBanners(request.resource.data);
+      allow delete: if false;
     }
   }
 }

@@ -145,7 +145,14 @@ export interface Translations {
     defaultPassHint: string;
     tabCreate: string;
     tabManage: string;
+    tabBanners: string;
     tabFirebase: string;
+    bannersTitle: string;
+    bannersSubtitle: string;
+    saveBannersBtn: string;
+    savingBannersBtn: string;
+    bannersSaved: string;
+    bannerSlotLabel: string;
     publishTitle: string;
     publishSubtitle: string;
     samplePresetsTitle: string;
@@ -153,6 +160,10 @@ export interface Translations {
     fieldTitle: string;
     fieldSector: string;
     fieldImageUrl: string;
+    fieldImagesTitle: string;
+    imageSlotLabel: string;
+    uploadSlotBtn: string;
+    atLeastOneImageError: string;
     cloudinaryDetected: string;
     standardUrl: string;
     livePreview: string;
@@ -363,7 +374,14 @@ export const I18N: Record<Language, Translations> = {
       defaultPassHint: 'መደበኛ የይለፍ ቃል: admin123',
       tabCreate: 'አዲስ ሥራ ጨምር',
       tabManage: 'ሥራዎችን አስተዳድር',
+      tabBanners: 'ዋና ባነሮች (Slider)',
       tabFirebase: 'ፋየርቤዝ እና ክላውዲነሪ',
+      bannersTitle: 'ዋና የገፅ ላይ ባነር ስላይደር (እስከ 4 ምስሎች)',
+      bannersSubtitle: 'በዋናው ገፅ የላይኛው ስላይደር ላይ የሚታዩ እስከ 4 የCloudinary ምስል ሊንኮችን ያስተካክሉና በፋየርቤዝ ይመዝግቡ።',
+      saveBannersBtn: 'ባነሮችን በፋየርቤዝ አስቀምጥ',
+      savingBannersBtn: 'በማስቀመጥ ላይ...',
+      bannersSaved: 'ዋና ባነሮች በተሳካ ሁኔታ ተዘምነዋል! በዋናው ገፅ ላይ ወዲያውኑ ይታያሉ።',
+      bannerSlotLabel: 'የባነር ምስል',
       publishTitle: 'አዲስ የፕሮጀክት ሥራ ይለጥፉ',
       publishSubtitle: 'የሚለጠፉ ሥራዎች ወዲያውኑ በፖርትፎሊዮው ላይ ይታያሉ፤ በፋየርቤዝ ዳታቤዝም ይቀመጣሉ።',
       samplePresetsTitle: 'የሙከራ ናሙናዎች (Cloudinary / Unsplash)',
@@ -371,6 +389,10 @@ export const I18N: Record<Language, Translations> = {
       fieldTitle: 'የፕሮጀክቱ ርዕስ *',
       fieldSector: 'የስራ ዘርፍ *',
       fieldImageUrl: 'የምስል ሊንክ (Cloudinary የሚደገፍ) *',
+      fieldImagesTitle: 'የፕሮጀክት ምስሎች (እስከ 4 ምስሎች - Cloudinary Upload)',
+      imageSlotLabel: 'ምስል',
+      uploadSlotBtn: 'ምስል ስቀል',
+      atLeastOneImageError: 'እባክዎ ቢያንስ 1 ምስል ይስቀሉ ወይም ሊንክ ያስገቡ።',
       cloudinaryDetected: '• ክላውዲነሪ ሊንክ ተገኝቷል: አውቶማቲክ ማሻሻያ (f_auto, q_auto) ነቅቷል',
       standardUrl: '• መደበኛ የምስል ሊንክ',
       livePreview: 'የምስሉ ቅድመ እይታ',
@@ -579,7 +601,14 @@ export const I18N: Record<Language, Translations> = {
       defaultPassHint: 'Default credentials: admin123',
       tabCreate: 'Post New Work',
       tabManage: 'Manage Posts',
+      tabBanners: 'Hero Banners (Slider)',
       tabFirebase: 'Firebase & Cloudinary',
+      bannersTitle: 'Hero Banner Slider (Up to 4 Images)',
+      bannersSubtitle: 'Manage up to 4 Cloudinary image URLs for the main hero auto-playing slider and save directly to Firestore.',
+      saveBannersBtn: 'Save Hero Banners to Firestore',
+      savingBannersBtn: 'Saving to Firestore...',
+      bannersSaved: 'Hero banners saved! Real-time slider updates are live.',
+      bannerSlotLabel: 'Hero Banner Slot',
       publishTitle: 'Publish New Project Work',
       publishSubtitle: 'Works are instantly published to the live portfolio gallery and stored in Firebase Firestore with Cloudinary CDN media optimization.',
       samplePresetsTitle: 'Quick-Fill Sample Presets (Cloudinary / Unsplash)',
@@ -587,6 +616,10 @@ export const I18N: Record<Language, Translations> = {
       fieldTitle: 'Project Title *',
       fieldSector: 'Division Sector *',
       fieldImageUrl: 'Image URL (Cloudinary Supported) *',
+      fieldImagesTitle: 'Project Images (Up to 4 Photos - Cloudinary Upload)',
+      imageSlotLabel: 'Image',
+      uploadSlotBtn: 'Upload to Cloudinary',
+      atLeastOneImageError: 'Please upload or enter at least 1 image URL.',
       cloudinaryDetected: '• Detected Cloudinary URL: Auto-optimization active (f_auto, q_auto)',
       standardUrl: '• Standard web image URL',
       livePreview: 'Live Media Preview',

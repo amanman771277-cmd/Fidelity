@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MoreVertical, Globe, Lock, Menu, X, ArrowUpRight, Check } from 'lucide-react';
-import { TELEGRAM_URL, TELEGRAM_HANDLE } from '../utils/portfolio.ts';
+import { TELEGRAM_URL, TELEGRAM_HANDLE, MAIN_LOGO_URL } from '../utils/portfolio.ts';
 import { Language, Translations } from '../utils/i18n.ts';
 
 interface NavbarProps {
@@ -39,9 +39,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand Monogram & Name */}
         <a href="#" className="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-[#d4af37]/50 rounded p-1">
-          <div className="w-10 h-10 rounded border border-[#d4af37]/40 bg-gradient-to-br from-[#d4af37]/20 to-transparent flex items-center justify-center font-heading font-black text-[#f3d375] text-lg shadow-[0_0_15px_rgba(212,175,55,0.15)] group-hover:border-[#d4af37] transition-all">
-            F
-          </div>
+          <img 
+            src={MAIN_LOGO_URL}
+            alt="Fidelity Business Group Logo"
+            className="w-10 h-10 rounded-full object-cover border border-[#d4af37]/40 bg-[#d4af37]/10 shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:border-[#d4af37] transition-all"
+          />
           <div>
             <span className="font-heading font-bold text-sm tracking-[0.18em] text-white group-hover:text-[#f3d375] transition-colors block">
               {t.brandName}

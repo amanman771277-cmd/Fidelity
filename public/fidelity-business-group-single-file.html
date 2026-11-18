@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ፊዴሊቲ ቢዝነስ ግሩፕ | ከሃሳብ ወደ ታላቅ ንግድ ግዛት!</title>
   <meta name="description" content="Fidelity Business Group - ፊዴሊቲ አርክቴክቶች፣ ብራንዲንግ እና ፈርኒቸር ዲዛይን። ከሃሳብ ወደ ታላቅ ንግድ ግዛት!">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/du5fpqadb/image/upload/v1794823734/ydihcua1jxejcfxcoah3.png">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -53,6 +54,16 @@
       border: 1px solid rgba(212, 175, 55, 0.16);
     }
     .dark-card:hover { border-color: rgba(212, 175, 55, 0.45); }
+    .slider-touch-viewport {
+      touch-action: pan-y;
+      overscroll-behavior-x: contain;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .slider-touch-viewport img {
+      -webkit-user-drag: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body class="bg-[#07090d] text-slate-100 antialiased selection:bg-[#d4af37]/30 selection:text-[#fce8a6]">
@@ -63,9 +74,11 @@
       
       <!-- Logo -->
       <a href="#" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded border border-gold-500/40 bg-gold-500/10 flex items-center justify-center font-heading font-bold text-gold-400 group-hover:border-gold-500 transition-colors">
-          F
-        </div>
+        <img 
+          src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794823734/ydihcua1jxejcfxcoah3.png" 
+          alt="Fidelity Business Group Logo" 
+          class="w-10 h-10 rounded-full object-cover border border-gold-500/40 bg-gold-500/10 group-hover:border-gold-500 transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+        />
         <div>
           <span class="block text-sm font-bold tracking-[0.2em] text-white font-heading" id="ui-brandName">ፊዴሊቲ</span>
           <span class="block text-[10px] tracking-[0.15em] text-gold-400 font-medium uppercase" id="ui-brandSubtitle">ቢዝነስ ግሩፕ</span>
@@ -156,13 +169,50 @@
         ከሃሳብ ወደ ታላቅ ንግድ ግዛት!
       </div>
 
-      <!-- Big Hero Corporate Logo Banner Image -->
-      <div class="w-full max-w-4xl lg:max-w-5xl my-4 sm:my-6 rounded-2xl overflow-hidden border-2 border-gold-500/40 shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-[#0a0d14]">
-        <img 
-          src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794126950/dvd9lq9xzmefjopiyufp.jpg" 
-          alt="Fidelity Business Group Corporate Banner" 
-          class="w-full h-auto max-h-[320px] sm:max-h-[460px] md:max-h-[520px] object-cover sm:object-contain mx-auto"
-        />
+      <!-- Uniform 16:9 Multi-Image Hero Slider (Up to 4 Banners) -->
+      <div
+        id="heroSliderWrapper"
+        onmouseenter="pauseHeroSlider()"
+        onmouseleave="resumeHeroSlider()"
+        class="relative w-full max-w-4xl mx-auto my-4 sm:my-6 aspect-video rounded-2xl overflow-hidden border-2 border-gold-500/40 shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-[#07090d] slider-touch-viewport touch-pan-y overscroll-x-contain"
+      >
+        <div id="heroSliderTrack" class="flex w-full h-full transition-transform duration-700 ease-out">
+          <div class="w-full h-full shrink-0 aspect-video overflow-hidden bg-[#07090d]">
+            <img
+              src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794126950/dvd9lq9xzmefjopiyufp.jpg"
+              alt="Fidelity Business Group Corporate Banner"
+              draggable="false"
+              class="w-full h-full object-cover object-center block select-none"
+            />
+          </div>
+        </div>
+
+        <!-- Prev / Next Arrows -->
+        <button
+          id="heroPrevBtn"
+          type="button"
+          onclick="prevHeroSlide()"
+          aria-label="Previous Hero Banner"
+          class="hidden absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-10"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+
+        <button
+          id="heroNextBtn"
+          type="button"
+          onclick="nextHeroSlide()"
+          aria-label="Next Hero Banner"
+          class="hidden absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-10"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <!-- Dot Indicators -->
+        <div
+          id="heroDotsContainer"
+          class="hidden absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/15"
+        ></div>
       </div>
 
       <h1 class="text-3xl sm:text-5xl lg:text-6xl font-bold font-heading text-white tracking-tight max-w-4xl mx-auto leading-none mt-4">
@@ -192,10 +242,10 @@
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <!-- Sector 1 -->
-      <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
+      <div class="sector-reveal-card dark-card p-8 rounded-lg flex flex-col justify-between opacity-0 translate-y-6 transition-all duration-700 ease-out delay-0">
         <div>
           <div class="flex items-center justify-between mb-5">
-            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg" alt="Fidelity Architects Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
+            <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794822406/d4ix1jiotomsxokxmhmq.jpg" alt="Fidelity Architects Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
             <span class="text-gold-400 text-xs font-mono tracking-widest uppercase px-2.5 py-1 rounded bg-black/60 border border-gold-500/20">ዘርፍ 01</span>
           </div>
           <h3 class="text-xl font-bold font-heading text-white mb-2" id="ui-sec1Name">ፊዴሊቲ አርክቴክቶች እና አማካሪ መሐንዲሶች</h3>
@@ -208,7 +258,7 @@
       </div>
 
       <!-- Sector 2 -->
-      <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
+      <div class="sector-reveal-card dark-card p-8 rounded-lg flex flex-col justify-between opacity-0 translate-y-6 transition-all duration-700 ease-out delay-150">
         <div>
           <div class="flex items-center justify-between mb-5">
             <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg" alt="Fidelity Branding Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
@@ -224,7 +274,7 @@
       </div>
 
       <!-- Sector 3 -->
-      <div class="dark-card p-8 rounded-lg flex flex-col justify-between">
+      <div class="sector-reveal-card dark-card p-8 rounded-lg flex flex-col justify-between opacity-0 translate-y-6 transition-all duration-700 ease-out delay-300">
         <div>
           <div class="flex items-center justify-between mb-5">
             <img src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg" alt="Fidelity Furniture Logo" loading="lazy" class="w-14 h-14 rounded-xl object-cover border border-gold-500/40 shadow-[0_0_15px_rgba(212,175,55,0.25)]" />
@@ -260,9 +310,123 @@
         </div>
       </div>
 
-      <!-- Portfolio Grid -->
+      <!-- Portfolio Grid with Skeleton Loading State -->
       <div id="portfolioGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Injected by JavaScript -->
+        <!-- Skeleton Loading Cards (shown while syncing with Firebase) -->
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -329,9 +493,11 @@
   <!-- CONTACT & FOOTER -->
   <footer id="contact" class="py-16 border-t border-gold-500/20 bg-[#07090d]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div class="w-12 h-12 rounded border border-gold-500/40 bg-gold-500/10 flex items-center justify-center font-heading font-bold text-gold-400 mx-auto mb-4 text-xl">
-        F
-      </div>
+      <img 
+        src="https://res.cloudinary.com/du5fpqadb/image/upload/v1794823734/ydihcua1jxejcfxcoah3.png" 
+        alt="Fidelity Business Group Logo" 
+        class="w-16 h-16 rounded-full object-cover border border-gold-500/40 bg-gold-500/10 mx-auto mb-4 shadow-[0_0_20px_rgba(212,175,55,0.25)]"
+      />
       <h3 class="text-2xl font-bold font-heading text-white">FIDELITY BUSINESS GROUP</h3>
       <p class="text-xs text-gold-400 font-semibold mt-1 uppercase" id="ui-footerMotto">ከሃሳብ ወደ ታላቅ ንግድ ግዛት!</p>
       
@@ -357,6 +523,67 @@
     </div>
   </footer>
 
+  <!-- POST DETAIL / LIGHTBOX MODAL WITH MULTI-IMAGE TOUCH SLIDER -->
+  <div id="postDetailModal" onclick="closePostModal()" class="hidden fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/85 backdrop-blur-md p-4 sm:p-6 items-center justify-center">
+    <div onclick="event.stopPropagation()" class="relative w-full max-w-4xl bg-[#0b0e14] border border-gold-500/35 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh] text-left my-auto">
+      <!-- Close Button -->
+      <button type="button" onclick="closePostModal()" aria-label="መዝጊያ / Close" class="absolute top-4 right-4 z-30 p-2 rounded-full bg-black/70 border border-slate-700 text-slate-300 hover:text-white hover:border-gold-500 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- Media Side (Touch-Action Pan-Y Multi-Image Slider) -->
+      <div
+        id="postModalViewport"
+        ontouchstart="handleModalTouchStart(event)"
+        ontouchmove="handleModalTouchMove(event)"
+        ontouchend="handleModalTouchEnd(event)"
+        ontouchcancel="resetModalTouch()"
+        class="md:w-3/5 bg-slate-950 relative flex items-center justify-center overflow-hidden min-h-[260px] md:min-h-[460px] shrink-0 slider-touch-viewport touch-pan-y overscroll-x-contain"
+      >
+        <div id="postModalSliderTrack" class="flex w-full h-full transition-transform duration-300 ease-out" style="will-change: transform;"></div>
+
+        <div id="postModalSectorBadge" class="pointer-events-none absolute top-4 left-4 z-10 px-3 py-1 rounded-md bg-black/85 backdrop-blur-md border border-gold-500/40 text-xs font-mono font-bold text-gold-300 uppercase flex items-center gap-2 shadow-lg"></div>
+
+        <button
+          id="postModalPrevBtn"
+          type="button"
+          onclick="slideModalImage(-1)"
+          aria-label="Previous project image"
+          class="hidden absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-20"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <button
+          id="postModalNextBtn"
+          type="button"
+          onclick="slideModalImage(1)"
+          aria-label="Next project image"
+          class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-20"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <div id="postModalDots" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/15"></div>
+      </div>
+
+      <!-- Content Side -->
+      <div class="md:w-2/5 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto overscroll-contain touch-pan-y">
+        <div>
+          <div id="postModalBadgeLabel" class="text-xs font-mono text-gold-400 mb-2 uppercase tracking-widest">የተረጋገጠ ፕሮጀክት</div>
+          <h3 id="postModalTitle" class="font-heading text-2xl font-bold text-white leading-tight"></h3>
+          <p id="postModalDesc" class="mt-4 text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+          <div id="postModalMeta" class="mt-6 space-y-2 pt-6 border-t border-slate-800/80 text-xs text-slate-400"></div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-800 space-y-3">
+          <div id="postModalDiscussLabel" class="text-[11px] font-mono text-slate-400 uppercase tracking-wider">ተመሳሳይ ፕሮጀክት ወይም ጥያቄ አለዎት?</div>
+          <a href="https://t.me/amanman777" target="_blank" rel="noopener noreferrer" id="postModalTelegramBtn" class="w-full py-3 px-4 rounded bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 hover:brightness-110 text-slate-950 text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2.5 gold-glow">
+            <span>ቀጥታ በቴሌግራም ያውሩን (@amanman777)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ADMIN PANEL MODAL (v3.0) -->
   <div id="adminModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md p-4 sm:p-6 items-center justify-center">
@@ -413,12 +640,15 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2">
+        <div class="flex flex-wrap items-center gap-2 mt-6 border-b border-slate-800 pb-2">
           <button id="tabBtnCreate" onclick="switchAdminTab('create')" class="px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all">
             + አዲስ ሥራ መለጠፍ
           </button>
           <button id="tabBtnManage" onclick="switchAdminTab('manage')" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
             ያሉ ሥራዎችን ማስተዳደር
+          </button>
+          <button id="tabBtnBanners" onclick="switchAdminTab('banners')" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all">
+            ዋና ባነሮች (Hero Slider)
           </button>
         </div>
 
@@ -497,29 +727,18 @@
               </div>
             </div>
 
-            <!-- CLOUDINARY DIRECT UPLOAD BOX (HARDCODED) -->
-            <div class="p-4 rounded-xl border border-gold-500/30 bg-gold-500/5 space-y-3">
-              <div class="flex items-center justify-between">
+            <!-- MULTI-IMAGE CLOUDINARY DIRECT UPLOAD BOX (UP TO 4 IMAGES) -->
+            <div class="p-4 rounded-xl border border-gold-500/30 bg-gold-500/5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <span class="text-xs font-bold text-gold-300 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span>ቀጥታ የክላውዲነሪ ምስል ጭነት (Direct Cloudinary Upload)</span>
+                    <span>የፕሮጀክት ምስሎች — እስከ 4 ምስሎች (Cloudinary Multi-Image Upload)</span>
                   </span>
                   <p class="text-[11px] text-slate-400 mt-0.5">
                     Cloud Name: <code class="text-gold-400 font-mono">du5fpqadb</code> | Preset: <code class="text-gold-400 font-mono">Fidelity</code>
                   </p>
                 </div>
-              </div>
-
-              <!-- File Input from Device -->
-              <div>
-                <input 
-                  type="file" 
-                  id="adminFileInput" 
-                  accept="image/*" 
-                  onchange="handleDirectCloudinaryUpload(event)" 
-                  class="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gold-500 file:text-slate-950 hover:file:brightness-110 cursor-pointer bg-slate-900/60 rounded-lg border border-slate-800 p-1"
-                />
               </div>
 
               <!-- Upload Progress Bar -->
@@ -533,22 +752,106 @@
                 </div>
               </div>
 
-              <!-- Manual URL or Upload Result -->
-              <div>
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">ወይም የምስል URL በቀጥታ ያስገቡ (Image URL)</label>
-                <input 
-                  type="url" 
-                  id="postImageUrl" 
-                  placeholder="https://res.cloudinary.com/..." 
-                  oninput="handleImageUrlChange(this.value)"
-                  class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono"
-                />
-              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Image 1 (Primary) -->
+                <div class="p-3 rounded-lg bg-[#07090d]/85 border border-gold-500/25 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-gold-300 font-mono">ምስል 1 / Image 1 *</span>
+                    <button type="button" onclick="clearPostImageSlot(0)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="adminFileInput" 
+                    accept="image/*" 
+                    onchange="handleDirectCloudinaryUpload(event, 0)" 
+                    class="block w-full text-[11px] text-slate-400 file:mr-2.5 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500 file:text-slate-950 hover:file:brightness-110 cursor-pointer bg-slate-900/60 rounded border border-slate-800 p-1"
+                  />
+                  <input 
+                    type="url" 
+                    id="postImageUrl" 
+                    placeholder="https://res.cloudinary.com/..." 
+                    oninput="handleImageUrlChange(this.value, 0)"
+                    class="w-full px-3 py-2 rounded bg-[#0b0e14] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono"
+                  />
+                  <div id="imagePreviewContainer" class="hidden aspect-[16/9] rounded overflow-hidden border border-gold-500/25 bg-slate-950">
+                    <img id="imagePreviewElement" src="" alt="Image 1 Preview" class="w-full h-full object-cover" />
+                  </div>
+                </div>
 
-              <!-- Live Preview -->
-              <div id="imagePreviewContainer" class="hidden mt-2 p-2 rounded bg-slate-950 border border-slate-800">
-                <span class="text-[10px] text-slate-400 font-mono uppercase block mb-1">የምስል ቅድመ እይታ (Preview)</span>
-                <img id="imagePreviewElement" src="" alt="Preview" class="h-32 w-auto max-w-full rounded object-cover border border-gold-500/20" />
+                <!-- Image 2 -->
+                <div class="p-3 rounded-lg bg-[#07090d]/85 border border-gold-500/20 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-gold-300 font-mono">ምስል 2 / Image 2</span>
+                    <button type="button" onclick="clearPostImageSlot(1)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="adminFileInput1" 
+                    accept="image/*" 
+                    onchange="handleDirectCloudinaryUpload(event, 1)" 
+                    class="block w-full text-[11px] text-slate-400 file:mr-2.5 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer bg-slate-900/60 rounded border border-slate-800 p-1"
+                  />
+                  <input 
+                    type="url" 
+                    id="postImageUrl1" 
+                    placeholder="https://res.cloudinary.com/..." 
+                    oninput="handleImageUrlChange(this.value, 1)"
+                    class="w-full px-3 py-2 rounded bg-[#0b0e14] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono"
+                  />
+                  <div id="imagePreviewContainer1" class="hidden aspect-[16/9] rounded overflow-hidden border border-gold-500/25 bg-slate-950">
+                    <img id="imagePreviewElement1" src="" alt="Image 2 Preview" class="w-full h-full object-cover" />
+                  </div>
+                </div>
+
+                <!-- Image 3 -->
+                <div class="p-3 rounded-lg bg-[#07090d]/85 border border-gold-500/20 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-gold-300 font-mono">ምስል 3 / Image 3</span>
+                    <button type="button" onclick="clearPostImageSlot(2)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="adminFileInput2" 
+                    accept="image/*" 
+                    onchange="handleDirectCloudinaryUpload(event, 2)" 
+                    class="block w-full text-[11px] text-slate-400 file:mr-2.5 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer bg-slate-900/60 rounded border border-slate-800 p-1"
+                  />
+                  <input 
+                    type="url" 
+                    id="postImageUrl2" 
+                    placeholder="https://res.cloudinary.com/..." 
+                    oninput="handleImageUrlChange(this.value, 2)"
+                    class="w-full px-3 py-2 rounded bg-[#0b0e14] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono"
+                  />
+                  <div id="imagePreviewContainer2" class="hidden aspect-[16/9] rounded overflow-hidden border border-gold-500/25 bg-slate-950">
+                    <img id="imagePreviewElement2" src="" alt="Image 3 Preview" class="w-full h-full object-cover" />
+                  </div>
+                </div>
+
+                <!-- Image 4 -->
+                <div class="p-3 rounded-lg bg-[#07090d]/85 border border-gold-500/20 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-gold-300 font-mono">ምስል 4 / Image 4</span>
+                    <button type="button" onclick="clearPostImageSlot(3)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                  </div>
+                  <input 
+                    type="file" 
+                    id="adminFileInput3" 
+                    accept="image/*" 
+                    onchange="handleDirectCloudinaryUpload(event, 3)" 
+                    class="block w-full text-[11px] text-slate-400 file:mr-2.5 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer bg-slate-900/60 rounded border border-slate-800 p-1"
+                  />
+                  <input 
+                    type="url" 
+                    id="postImageUrl3" 
+                    placeholder="https://res.cloudinary.com/..." 
+                    oninput="handleImageUrlChange(this.value, 3)"
+                    class="w-full px-3 py-2 rounded bg-[#0b0e14] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono"
+                  />
+                  <div id="imagePreviewContainer3" class="hidden aspect-[16/9] rounded overflow-hidden border border-gold-500/25 bg-slate-950">
+                    <img id="imagePreviewElement3" src="" alt="Image 4 Preview" class="w-full h-full object-cover" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -574,6 +877,79 @@
           </div>
         </div>
 
+        <!-- Tab 3: Manage Hero Banner Slider (Up to 4 Cloudinary URLs) -->
+        <div id="tabContentBanners" class="hidden mt-6">
+          <div class="mb-4">
+            <h4 class="text-base font-bold font-heading text-white">ዋና የገፅ ላይ ባነር ስላይደር (እስከ 4 ምስሎች)</h4>
+            <p class="text-xs text-slate-400 mt-1">በዋናው ገፅ የላይኛው ስላይደር ላይ የሚታዩ እስከ 4 የCloudinary ምስል ሊንኮችን ያስተካክሉና በFirebase Firestore ይመዝግቡ።</p>
+          </div>
+
+          <form id="heroBannersForm" onsubmit="handleSaveHeroBanners(event)" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Slot 1 -->
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-gold-500/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-gold-300 font-mono">ባነር ምስል #1 (Banner 1)</span>
+                  <button type="button" onclick="clearHeroBannerSlot(0)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                </div>
+                <input type="url" id="heroBannerUrl0" oninput="updateHeroBannerSlotPreview(0)" placeholder="https://res.cloudinary.com/..." class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono" />
+                <input type="file" id="heroBannerFile0" accept="image/*" onchange="handleHeroBannerFileUpload(event, 0)" class="block w-full text-[11px] text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer" />
+                <div id="heroBannerPreviewWrap0" class="hidden aspect-[16/9] rounded overflow-hidden border border-slate-800 bg-slate-950">
+                  <img id="heroBannerPreview0" src="" alt="Banner 1 Preview" class="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <!-- Slot 2 -->
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-gold-500/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-gold-300 font-mono">ባነር ምስል #2 (Banner 2)</span>
+                  <button type="button" onclick="clearHeroBannerSlot(1)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                </div>
+                <input type="url" id="heroBannerUrl1" oninput="updateHeroBannerSlotPreview(1)" placeholder="https://res.cloudinary.com/..." class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono" />
+                <input type="file" id="heroBannerFile1" accept="image/*" onchange="handleHeroBannerFileUpload(event, 1)" class="block w-full text-[11px] text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer" />
+                <div id="heroBannerPreviewWrap1" class="hidden aspect-[16/9] rounded overflow-hidden border border-slate-800 bg-slate-950">
+                  <img id="heroBannerPreview1" src="" alt="Banner 2 Preview" class="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <!-- Slot 3 -->
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-gold-500/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-gold-300 font-mono">ባነር ምስል #3 (Banner 3)</span>
+                  <button type="button" onclick="clearHeroBannerSlot(2)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                </div>
+                <input type="url" id="heroBannerUrl2" oninput="updateHeroBannerSlotPreview(2)" placeholder="https://res.cloudinary.com/..." class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono" />
+                <input type="file" id="heroBannerFile2" accept="image/*" onchange="handleHeroBannerFileUpload(event, 2)" class="block w-full text-[11px] text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer" />
+                <div id="heroBannerPreviewWrap2" class="hidden aspect-[16/9] rounded overflow-hidden border border-slate-800 bg-slate-950">
+                  <img id="heroBannerPreview2" src="" alt="Banner 3 Preview" class="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              <!-- Slot 4 -->
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-gold-500/25 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-gold-300 font-mono">ባነር ምስል #4 (Banner 4)</span>
+                  <button type="button" onclick="clearHeroBannerSlot(3)" class="text-[11px] text-slate-400 hover:text-rose-400">አጽዳ</button>
+                </div>
+                <input type="url" id="heroBannerUrl3" oninput="updateHeroBannerSlotPreview(3)" placeholder="https://res.cloudinary.com/..." class="w-full px-3 py-2 rounded bg-[#07090d] border border-slate-800 focus:border-gold-500 text-white text-xs outline-none font-mono" />
+                <input type="file" id="heroBannerFile3" accept="image/*" onchange="handleHeroBannerFileUpload(event, 3)" class="block w-full text-[11px] text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-gold-500/20 file:text-gold-300 hover:file:bg-gold-500/30 cursor-pointer" />
+                <div id="heroBannerPreviewWrap3" class="hidden aspect-[16/9] rounded overflow-hidden border border-slate-800 bg-slate-950">
+                  <img id="heroBannerPreview3" src="" alt="Banner 4 Preview" class="w-full h-full object-cover" />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="saveBannersBtn"
+              class="w-full py-3.5 rounded-lg bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all gold-glow"
+            >
+              ባነሮችን በFirestore አስቀምጥ / Save Hero Banners
+            </button>
+            <div id="saveBannersSuccess" class="hidden text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-center font-medium"></div>
+          </form>
+        </div>
+
       </div>
     </div>
   </div>
@@ -585,6 +961,9 @@
     const CLOUDINARY_UPLOAD_PRESET = 'Fidelity';
     const CLOUDINARY_UPLOAD_URL = 'https://api.cloudinary.com/v1_1/du5fpqadb/image/upload';
     const FIRESTORE_COLLECTION_NAME = 'posts';
+    const HERO_BANNERS_COLLECTION = 'settings';
+    const HERO_BANNERS_DOC_ID = 'hero_banners';
+    const DEFAULT_HERO_BANNER_URL = 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794126950/dvd9lq9xzmefjopiyufp.jpg';
     const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
     const INITIAL_PROJECTS = [
@@ -602,7 +981,7 @@
     "locationAm": "ዋና የፋይናንስ ወረዳ",
     "year": "2025",
     "featured": true,
-    "createdAt": 1791631120069
+    "createdAt": 1792233052840
   },
   {
     "id": "fid-brand-01",
@@ -618,7 +997,7 @@
     "locationAm": "አለም አቀፍ ዝግጅት",
     "year": "2025",
     "featured": true,
-    "createdAt": 1792063120069
+    "createdAt": 1792665052840
   },
   {
     "id": "fid-furn-01",
@@ -634,7 +1013,7 @@
     "locationAm": "ፕሬዝዳንታዊ ታወር ስዊት",
     "year": "2025",
     "featured": true,
-    "createdAt": 1792495120069
+    "createdAt": 1793097052840
   },
   {
     "id": "fid-arch-02",
@@ -650,7 +1029,7 @@
     "locationAm": "ወደብ ዳርቻ",
     "year": "2024",
     "featured": false,
-    "createdAt": 1792927120069
+    "createdAt": 1793529052840
   },
   {
     "id": "fid-brand-02",
@@ -666,7 +1045,7 @@
     "locationAm": "ዙሪክ እና ዱባይ",
     "year": "2024",
     "featured": false,
-    "createdAt": 1793359120069
+    "createdAt": 1793961052840
   },
   {
     "id": "fid-furn-02",
@@ -682,7 +1061,7 @@
     "locationAm": "ፓሊሴድስ",
     "year": "2025",
     "featured": false,
-    "createdAt": 1793791120069
+    "createdAt": 1794393052840
   }
 ];
     let FIREBASE_CONFIG = {
@@ -897,7 +1276,14 @@
       "defaultPassHint": "መደበኛ የይለፍ ቃል: admin123",
       "tabCreate": "አዲስ ሥራ ጨምር",
       "tabManage": "ሥራዎችን አስተዳድር",
+      "tabBanners": "ዋና ባነሮች (Slider)",
       "tabFirebase": "ፋየርቤዝ እና ክላውዲነሪ",
+      "bannersTitle": "ዋና የገፅ ላይ ባነር ስላይደር (እስከ 4 ምስሎች)",
+      "bannersSubtitle": "በዋናው ገፅ የላይኛው ስላይደር ላይ የሚታዩ እስከ 4 የCloudinary ምስል ሊንኮችን ያስተካክሉና በፋየርቤዝ ይመዝግቡ።",
+      "saveBannersBtn": "ባነሮችን በፋየርቤዝ አስቀምጥ",
+      "savingBannersBtn": "በማስቀመጥ ላይ...",
+      "bannersSaved": "ዋና ባነሮች በተሳካ ሁኔታ ተዘምነዋል! በዋናው ገፅ ላይ ወዲያውኑ ይታያሉ።",
+      "bannerSlotLabel": "የባነር ምስል",
       "publishTitle": "አዲስ የፕሮጀክት ሥራ ይለጥፉ",
       "publishSubtitle": "የሚለጠፉ ሥራዎች ወዲያውኑ በፖርትፎሊዮው ላይ ይታያሉ፤ በፋየርቤዝ ዳታቤዝም ይቀመጣሉ።",
       "samplePresetsTitle": "የሙከራ ናሙናዎች (Cloudinary / Unsplash)",
@@ -905,6 +1291,10 @@
       "fieldTitle": "የፕሮጀክቱ ርዕስ *",
       "fieldSector": "የስራ ዘርፍ *",
       "fieldImageUrl": "የምስል ሊንክ (Cloudinary የሚደገፍ) *",
+      "fieldImagesTitle": "የፕሮጀክት ምስሎች (እስከ 4 ምስሎች - Cloudinary Upload)",
+      "imageSlotLabel": "ምስል",
+      "uploadSlotBtn": "ምስል ስቀል",
+      "atLeastOneImageError": "እባክዎ ቢያንስ 1 ምስል ይስቀሉ ወይም ሊንክ ያስገቡ።",
       "cloudinaryDetected": "• ክላውዲነሪ ሊንክ ተገኝቷል: አውቶማቲክ ማሻሻያ (f_auto, q_auto) ነቅቷል",
       "standardUrl": "• መደበኛ የምስል ሊንክ",
       "livePreview": "የምስሉ ቅድመ እይታ",
@@ -1140,7 +1530,14 @@
       "defaultPassHint": "Default credentials: admin123",
       "tabCreate": "Post New Work",
       "tabManage": "Manage Posts",
+      "tabBanners": "Hero Banners (Slider)",
       "tabFirebase": "Firebase & Cloudinary",
+      "bannersTitle": "Hero Banner Slider (Up to 4 Images)",
+      "bannersSubtitle": "Manage up to 4 Cloudinary image URLs for the main hero auto-playing slider and save directly to Firestore.",
+      "saveBannersBtn": "Save Hero Banners to Firestore",
+      "savingBannersBtn": "Saving to Firestore...",
+      "bannersSaved": "Hero banners saved! Real-time slider updates are live.",
+      "bannerSlotLabel": "Hero Banner Slot",
       "publishTitle": "Publish New Project Work",
       "publishSubtitle": "Works are instantly published to the live portfolio gallery and stored in Firebase Firestore with Cloudinary CDN media optimization.",
       "samplePresetsTitle": "Quick-Fill Sample Presets (Cloudinary / Unsplash)",
@@ -1148,6 +1545,10 @@
       "fieldTitle": "Project Title *",
       "fieldSector": "Division Sector *",
       "fieldImageUrl": "Image URL (Cloudinary Supported) *",
+      "fieldImagesTitle": "Project Images (Up to 4 Photos - Cloudinary Upload)",
+      "imageSlotLabel": "Image",
+      "uploadSlotBtn": "Upload to Cloudinary",
+      "atLeastOneImageError": "Please upload or enter at least 1 image URL.",
       "cloudinaryDetected": "• Detected Cloudinary URL: Auto-optimization active (f_auto, q_auto)",
       "standardUrl": "• Standard web image URL",
       "livePreview": "Live Media Preview",
@@ -1188,6 +1589,13 @@
     let isAdminLoggedIn = false;
     // In-memory state only (no localStorage for posts) - populated and updated live by Firebase Firestore
     let allProjects = [...INITIAL_PROJECTS];
+    let heroBanners = [DEFAULT_HERO_BANNER_URL];
+    let currentHeroSlide = 0;
+    let currentHeroTrackIndex = 0;
+    let heroSliderTimer = null;
+    let heroSnapTimer = null;
+    let heroTrackListenerAttached = false;
+    let isHeroSliderPaused = false;
     let firestoreDb = null;
 
     // FIRESTORE CLOUD-ONLY HELPERS (collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot)
@@ -1326,6 +1734,373 @@
       setText('ui-footerAddress', t.contact.hqLabel);
     }
 
+    // Render animated skeleton loading states while syncing with Firebase
+    function renderPortfolioSkeletons() {
+      const grid = document.getElementById('portfolioGrid');
+      if (!grid) return;
+      grid.innerHTML = Array.from({ length: 6 }).map(() => `
+        <div class="dark-card rounded-lg overflow-hidden flex flex-col justify-between border border-slate-800/80 animate-pulse">
+          <div>
+            <div class="relative aspect-video bg-slate-800/70 overflow-hidden">
+              <div class="absolute top-3 left-3 w-28 h-6 rounded-md bg-slate-800/90 border border-slate-700/50 flex items-center gap-2 px-2">
+                <div class="w-4 h-4 rounded-full bg-slate-700 shrink-0"></div>
+                <div class="w-14 h-2.5 bg-slate-700/80 rounded"></div>
+              </div>
+            </div>
+            <div class="p-6 space-y-3">
+              <div class="h-4 w-3/4 bg-slate-700/80 rounded"></div>
+              <div class="h-3 w-full bg-slate-800/70 rounded"></div>
+              <div class="h-3 w-5/6 bg-slate-800/60 rounded"></div>
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                <div class="h-3 w-12 bg-slate-800 rounded"></div>
+                <div class="h-6 w-24 bg-gold-500/10 border border-gold-500/20 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    const postCardSlides = {};
+    const postTouchState = {
+      postId: null,
+      count: 0,
+      startX: null,
+      startY: null,
+      lastX: 0,
+      lock: null,
+      didSwipe: false
+    };
+
+    const modalSliderState = {
+      projectId: null,
+      images: [],
+      index: 0,
+      startX: null,
+      startY: null,
+      lastX: 0,
+      lock: null
+    };
+
+    function getPostImagesList(p) {
+      const raw = Array.isArray(p && p.images) && p.images.length > 0 ? p.images : [p && p.imageUrl];
+      const seen = new Set();
+      const out = [];
+      for (const item of raw) {
+        const val = typeof item === 'string' ? item.trim() : '';
+        if (val && !seen.has(val)) {
+          seen.add(val);
+          out.push(val);
+          if (out.length >= 4) break;
+        }
+      }
+      if (out.length === 0) {
+        out.push('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80');
+      }
+      return out;
+    }
+
+    function applyPostTrackTransform(postId, offsetPx, animate) {
+      const track = document.getElementById('postSliderTrack-' + postId);
+      const current = postCardSlides[postId] || 0;
+      if (!track) return;
+      track.style.transition = animate ? 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
+      track.style.transform = `translate3d(calc(-${current * 100}% + ${offsetPx}px), 0, 0)`;
+    }
+
+    function updatePostSliderUI(postId, count) {
+      applyPostTrackTransform(postId, 0, true);
+      const current = postCardSlides[postId] || 0;
+      const dotsWrap = document.getElementById('postSliderDots-' + postId);
+      if (dotsWrap) {
+        const dots = dotsWrap.querySelectorAll('button');
+        dots.forEach((dot, idx) => {
+          dot.className = idx === current
+            ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300'
+            : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300';
+        });
+      }
+    }
+
+    function slidePostCard(postId, delta, count, evt) {
+      if (evt && evt.stopPropagation) evt.stopPropagation();
+      if (count <= 1) return;
+      const cur = postCardSlides[postId] || 0;
+      postCardSlides[postId] = (cur + delta + count) % count;
+      updatePostSliderUI(postId, count);
+    }
+
+    function goToPostSlide(postId, idx, count, evt) {
+      if (evt && evt.stopPropagation) evt.stopPropagation();
+      if (idx < 0 || idx >= count) return;
+      postCardSlides[postId] = idx;
+      updatePostSliderUI(postId, count);
+    }
+
+    function resetPostTouch() {
+      if (postTouchState.postId) {
+        applyPostTrackTransform(postTouchState.postId, 0, true);
+      }
+      postTouchState.postId = null;
+      postTouchState.count = 0;
+      postTouchState.startX = null;
+      postTouchState.startY = null;
+      postTouchState.lastX = 0;
+      postTouchState.lock = null;
+    }
+
+    function handlePostTouchStart(postId, count, evt) {
+      if (!evt || !evt.touches || evt.touches.length !== 1) return;
+      postTouchState.postId = postId;
+      postTouchState.count = count;
+      postTouchState.startX = evt.touches[0].clientX;
+      postTouchState.startY = evt.touches[0].clientY;
+      postTouchState.lastX = evt.touches[0].clientX;
+      postTouchState.lock = null;
+      postTouchState.didSwipe = false;
+    }
+
+    function handlePostTouchMove(postId, count, evt) {
+      if (count <= 1 || postTouchState.postId !== postId || postTouchState.startX === null || !evt.touches || !evt.touches[0]) return;
+      const touch = evt.touches[0];
+      const dx = touch.clientX - postTouchState.startX;
+      const dy = touch.clientY - postTouchState.startY;
+      postTouchState.lastX = touch.clientX;
+
+      if (postTouchState.lock === null) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        postTouchState.lock = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      }
+
+      if (postTouchState.lock === 'y') return;
+
+      if (evt.cancelable) evt.preventDefault();
+      postTouchState.didSwipe = true;
+      applyPostTrackTransform(postId, dx, false);
+    }
+
+    function handlePostTouchEnd(postId, count, evt) {
+      if (count <= 1 || postTouchState.postId !== postId || postTouchState.startX === null) {
+        resetPostTouch();
+        return;
+      }
+      const endX = (evt && evt.changedTouches && evt.changedTouches[0])
+        ? evt.changedTouches[0].clientX
+        : postTouchState.lastX;
+      const diffX = endX - postTouchState.startX;
+      const vp = document.getElementById('postViewport-' + postId);
+      const width = vp ? vp.clientWidth : 320;
+      const threshold = Math.min(48, Math.max(30, width * 0.15));
+
+      if (postTouchState.lock === 'x' && Math.abs(diffX) > threshold) {
+        postTouchState.didSwipe = true;
+        slidePostCard(postId, diffX < 0 ? 1 : -1, count);
+      } else {
+        applyPostTrackTransform(postId, 0, true);
+      }
+      postTouchState.postId = null;
+      postTouchState.startX = null;
+      postTouchState.startY = null;
+      postTouchState.lock = null;
+    }
+
+    function handleCardViewportClick(rawId) {
+      if (postTouchState.didSwipe) {
+        postTouchState.didSwipe = false;
+        return;
+      }
+      openPostModal(rawId);
+    }
+
+    // POST DETAIL / LIGHTBOX MODAL LOGIC WITH SMOOTH TOUCH SWIPE
+    function applyModalTrackTransform(offsetPx, animate) {
+      const track = document.getElementById('postModalSliderTrack');
+      if (!track) return;
+      track.style.transition = animate ? 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
+      track.style.transform = `translate3d(calc(-${modalSliderState.index * 100}% + ${offsetPx}px), 0, 0)`;
+    }
+
+    function updateModalSliderUI() {
+      applyModalTrackTransform(0, true);
+      const dotsWrap = document.getElementById('postModalDots');
+      if (dotsWrap) {
+        const dots = dotsWrap.querySelectorAll('button');
+        dots.forEach((dot, idx) => {
+          dot.className = idx === modalSliderState.index
+            ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300'
+            : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300';
+        });
+      }
+    }
+
+    function slideModalImage(delta) {
+      const n = modalSliderState.images.length;
+      if (n <= 1) return;
+      modalSliderState.index = (modalSliderState.index + delta + n) % n;
+      updateModalSliderUI();
+    }
+
+    function goToModalSlide(idx) {
+      const n = modalSliderState.images.length;
+      if (idx < 0 || idx >= n) return;
+      modalSliderState.index = idx;
+      updateModalSliderUI();
+    }
+
+    function resetModalTouch() {
+      applyModalTrackTransform(0, true);
+      modalSliderState.startX = null;
+      modalSliderState.startY = null;
+      modalSliderState.lastX = 0;
+      modalSliderState.lock = null;
+    }
+
+    function handleModalTouchStart(evt) {
+      if (!evt || !evt.touches || evt.touches.length !== 1) return;
+      modalSliderState.startX = evt.touches[0].clientX;
+      modalSliderState.startY = evt.touches[0].clientY;
+      modalSliderState.lastX = evt.touches[0].clientX;
+      modalSliderState.lock = null;
+    }
+
+    function handleModalTouchMove(evt) {
+      const n = modalSliderState.images.length;
+      if (n <= 1 || modalSliderState.startX === null || !evt.touches || !evt.touches[0]) return;
+      const touch = evt.touches[0];
+      const dx = touch.clientX - modalSliderState.startX;
+      const dy = touch.clientY - modalSliderState.startY;
+      modalSliderState.lastX = touch.clientX;
+
+      if (modalSliderState.lock === null) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        modalSliderState.lock = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+      }
+
+      if (modalSliderState.lock === 'y') return;
+
+      if (evt.cancelable) evt.preventDefault();
+      applyModalTrackTransform(dx, false);
+    }
+
+    function handleModalTouchEnd(evt) {
+      const n = modalSliderState.images.length;
+      if (n <= 1 || modalSliderState.startX === null) {
+        resetModalTouch();
+        return;
+      }
+      const endX = (evt && evt.changedTouches && evt.changedTouches[0])
+        ? evt.changedTouches[0].clientX
+        : modalSliderState.lastX;
+      const diffX = endX - modalSliderState.startX;
+      const vp = document.getElementById('postModalViewport');
+      const width = vp ? vp.clientWidth : 320;
+      const threshold = Math.min(48, Math.max(30, width * 0.15));
+
+      if (modalSliderState.lock === 'x' && Math.abs(diffX) > threshold) {
+        slideModalImage(diffX < 0 ? 1 : -1);
+      } else {
+        applyModalTrackTransform(0, true);
+      }
+      modalSliderState.startX = null;
+      modalSliderState.startY = null;
+      modalSliderState.lock = null;
+    }
+
+    function openPostModal(projectId) {
+      const p = allProjects.find(item => String(item.id) === String(projectId));
+      if (!p) return;
+
+      const t = I18N_DATA[currentLang] || I18N_DATA['am'];
+      const sectorLogos = {
+        architects: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794822406/d4ix1jiotomsxokxmhmq.jpg',
+        branding: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg',
+        furniture: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg'
+      };
+      const imgs = getPostImagesList(p);
+      modalSliderState.projectId = p.id;
+      modalSliderState.images = imgs;
+      modalSliderState.index = 0;
+
+      const title = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
+      const desc = (currentLang === 'am' && p.descriptionAm) ? p.descriptionAm : p.description;
+      const client = (currentLang === 'am' && p.clientAm) ? p.clientAm : p.client;
+      const location = (currentLang === 'am' && p.locationAm) ? p.locationAm : p.location;
+      const sectorMeta = t.sectors[p.sector] || {};
+
+      const track = document.getElementById('postModalSliderTrack');
+      const badge = document.getElementById('postModalSectorBadge');
+      const prevBtn = document.getElementById('postModalPrevBtn');
+      const nextBtn = document.getElementById('postModalNextBtn');
+      const dotsWrap = document.getElementById('postModalDots');
+
+      if (track) {
+        track.innerHTML = imgs.map((imgUrl, idx) => `
+          <div class="w-full h-full shrink-0 overflow-hidden bg-slate-950">
+            <img src="${imgUrl}" alt="${title} (${idx + 1}/${imgs.length})" draggable="false" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80'">
+          </div>
+        `).join('');
+        applyModalTrackTransform(0, false);
+      }
+
+      if (badge) {
+        const sLogo = sectorLogos[p.sector] || sectorLogos.architects;
+        badge.innerHTML = `<img src="${sLogo}" alt="${p.sector}" class="w-5 h-5 rounded-full object-cover border border-gold-500/60 shrink-0" /><span>${sectorMeta.name || p.sector}</span>`;
+      }
+
+      if (imgs.length > 1) {
+        if (prevBtn) prevBtn.classList.remove('hidden');
+        if (nextBtn) nextBtn.classList.remove('hidden');
+        if (dotsWrap) {
+          dotsWrap.classList.remove('hidden');
+          dotsWrap.innerHTML = imgs.map((_, idx) => `
+            <button type="button" onclick="goToModalSlide(${idx})" aria-label="Go to project image ${idx + 1}" class="${idx === 0 ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300' : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300'}"></button>
+          `).join('');
+        }
+      } else {
+        if (prevBtn) prevBtn.classList.add('hidden');
+        if (nextBtn) nextBtn.classList.add('hidden');
+        if (dotsWrap) dotsWrap.classList.add('hidden');
+      }
+
+      setText('postModalBadgeLabel', t.lightbox && t.lightbox.badge);
+      setText('postModalTitle', title);
+      setText('postModalDesc', desc);
+      setText('postModalDiscussLabel', t.lightbox && t.lightbox.discussTitle);
+      setText('postModalTelegramBtn', t.lightbox && t.lightbox.connectBtn);
+
+      const metaEl = document.getElementById('postModalMeta');
+      if (metaEl) {
+        metaEl.innerHTML = [
+          client ? `<div>${(t.lightbox && t.lightbox.client) || 'Client:'} <strong class="text-white font-medium">${client}</strong></div>` : '',
+          location ? `<div>${(t.lightbox && t.lightbox.location) || 'Location:'} <strong class="text-white font-medium">${location}</strong></div>` : '',
+          `<div>${(t.lightbox && t.lightbox.year) || 'Year:'} <strong class="text-white font-medium">${p.year || '2026'}</strong></div>`
+        ].join('');
+      }
+
+      const modal = document.getElementById('postDetailModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closePostModal() {
+      const modal = document.getElementById('postDetailModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      resetModalTouch();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('postDetailModal');
+      if (!modal || modal.classList.contains('hidden')) return;
+      if (e.key === 'Escape') closePostModal();
+      else if (e.key === 'ArrowRight') slideModalImage(1);
+      else if (e.key === 'ArrowLeft') slideModalImage(-1);
+    });
+
     // Render Dynamic Portfolio Gallery
     function renderPortfolio() {
       const grid = document.getElementById('portfolioGrid');
@@ -1333,27 +2108,89 @@
       const filtered = allProjects.filter(p => currentFilter === 'all' || p.sector === currentFilter);
       const t = I18N_DATA[currentLang] || I18N_DATA['am'];
       const sectorLogos = {
-        architects: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg',
+        architects: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794822406/d4ix1jiotomsxokxmhmq.jpg',
         branding: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg',
         furniture: 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg'
       };
 
-      grid.innerHTML = filtered.map(p => {
+      grid.innerHTML = filtered.map((p, idx) => {
         const title = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
         const desc = (currentLang === 'am' && p.descriptionAm) ? p.descriptionAm : p.description;
         const logoUrl = sectorLogos[p.sector] || sectorLogos.architects;
+        const postImgs = getPostImagesList(p);
+        const safeDomId = String(p.id || ('post-' + idx)).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const safeProjectId = String(p.id || '').replace(/'/g, "\\'");
+        const hasMulti = postImgs.length > 1;
+        const curSlide = postCardSlides[safeDomId] && postCardSlides[safeDomId] < postImgs.length ? postCardSlides[safeDomId] : 0;
+        postCardSlides[safeDomId] = curSlide;
+
+        const mediaHtml = hasMulti
+          ? `
+            <div
+              id="postSliderTrack-${safeDomId}"
+              class="flex w-full h-full transition-transform duration-300 ease-out"
+              style="transform: translate3d(-${curSlide * 100}%, 0, 0); will-change: transform;"
+            >
+              ${postImgs.map((imgUrl, slideIdx) => `
+                <div class="w-full h-full shrink-0 overflow-hidden bg-slate-900">
+                  <img src="${imgUrl}" alt="${title} (${slideIdx + 1}/${postImgs.length})" loading="lazy" draggable="false" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'">
+                </div>
+              `).join('')}
+            </div>
+            <button
+              type="button"
+              onclick="slidePostCard('${safeDomId}', -1, ${postImgs.length}, event)"
+              aria-label="Previous post image"
+              class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-20"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <button
+              type="button"
+              onclick="slidePostCard('${safeDomId}', 1, ${postImgs.length}, event)"
+              aria-label="Next post image"
+              class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 hover:bg-gold-500/85 text-gold-300 hover:text-slate-950 border border-white/15 hover:border-gold-500 backdrop-blur-md flex items-center justify-center transition-all shadow-md z-20"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <div
+              id="postSliderDots-${safeDomId}"
+              onclick="event.stopPropagation()"
+              class="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md border border-white/15"
+            >
+              ${postImgs.map((_, dotIdx) => `
+                <button
+                  type="button"
+                  onclick="goToPostSlide('${safeDomId}', ${dotIdx}, ${postImgs.length}, event)"
+                  aria-label="Go to image ${dotIdx + 1}"
+                  class="${dotIdx === curSlide ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300' : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300'}"
+                ></button>
+              `).join('')}
+            </div>
+          `
+          : `<img src="${postImgs[0]}" alt="${title}" loading="lazy" draggable="false" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 select-none" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'">`;
+
         return `
           <div class="dark-card rounded-lg overflow-hidden group flex flex-col justify-between">
-            <div class="relative aspect-video overflow-hidden bg-slate-900">
-              <img src="${p.imageUrl}" alt="${title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80'">
-              <div class="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/85 backdrop-blur-md border border-gold-500/40 text-[10px] font-mono tracking-widest text-gold-300 uppercase flex items-center gap-1.5 shadow-lg">
+            <div
+              id="postViewport-${safeDomId}"
+              onclick="handleCardViewportClick('${safeProjectId}')"
+              ontouchstart="handlePostTouchStart('${safeDomId}', ${postImgs.length}, event)"
+              ontouchmove="handlePostTouchMove('${safeDomId}', ${postImgs.length}, event)"
+              ontouchend="handlePostTouchEnd('${safeDomId}', ${postImgs.length}, event)"
+              ontouchcancel="resetPostTouch()"
+              class="relative aspect-video overflow-hidden bg-slate-900 cursor-pointer slider-touch-viewport touch-pan-y overscroll-x-contain"
+            >
+              ${mediaHtml}
+              <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07090d]/70 via-transparent to-transparent"></div>
+              <div class="pointer-events-none absolute top-3 left-3 z-10 px-2.5 py-1 rounded-md bg-black/85 backdrop-blur-md border border-gold-500/40 text-[10px] font-mono tracking-widest text-gold-300 uppercase flex items-center gap-1.5 shadow-lg">
                 <img src="${logoUrl}" alt="${p.sector}" loading="lazy" class="w-4 h-4 rounded-full object-cover border border-gold-500/60 shrink-0" />
                 <span>${p.sector}</span>
               </div>
             </div>
             <div class="p-6 flex-1 flex flex-col justify-between">
               <div>
-                <h4 class="text-lg font-bold font-heading text-white group-hover:text-gold-300 transition-colors">${title}</h4>
+                <h4 onclick="openPostModal('${safeProjectId}')" class="text-lg font-bold font-heading text-white group-hover:text-gold-300 transition-colors cursor-pointer">${title}</h4>
                 <p class="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">${desc}</p>
               </div>
               <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
@@ -1393,10 +2230,19 @@
         document.getElementById('adminLockScreen').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
         renderAdminManageList();
+        populateBannerInputs();
       } else {
         document.getElementById('adminLockScreen').classList.remove('hidden');
         document.getElementById('adminDashboard').classList.add('hidden');
         document.getElementById('adminPasswordInput').focus();
+      }
+    }
+
+    function closeAdminModal() {
+      const modal = document.getElementById('adminModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
       }
     }
 
@@ -1411,6 +2257,7 @@
         document.getElementById('adminLockScreen').classList.add('hidden');
         document.getElementById('adminDashboard').classList.remove('hidden');
         renderAdminManageList();
+        populateBannerInputs();
       } else {
         errBox.textContent = 'የተሳሳተ የአድሚን የይለፍ ቃል። (መደበኛ: admin123)';
         errBox.classList.remove('hidden');
@@ -1427,16 +2274,20 @@
     function switchAdminTab(tab) {
       const btnCreate = document.getElementById('tabBtnCreate');
       const btnManage = document.getElementById('tabBtnManage');
+      const btnBanners = document.getElementById('tabBtnBanners');
       const paneCreate = document.getElementById('tabContentCreate');
       const paneManage = document.getElementById('tabContentManage');
+      const paneBanners = document.getElementById('tabContentBanners');
 
       if (!btnCreate || !btnManage || !paneCreate || !paneManage) return;
 
       btnCreate.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
       btnManage.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
+      if (btnBanners) btnBanners.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all';
 
       paneCreate.classList.add('hidden');
       paneManage.classList.add('hidden');
+      if (paneBanners) paneBanners.classList.add('hidden');
 
       if (tab === 'create') {
         btnCreate.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
@@ -1445,11 +2296,333 @@
         btnManage.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
         paneManage.classList.remove('hidden');
         renderAdminManageList();
+      } else if (tab === 'banners' && btnBanners && paneBanners) {
+        btnBanners.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-gold-500 text-slate-950 transition-all';
+        paneBanners.classList.remove('hidden');
+        populateBannerInputs();
       }
     }
 
-    // CLOUDINARY DIRECT UNSIGNED UPLOAD (HARDCODED)
-    function handleDirectCloudinaryUpload(e) {
+    // MULTI-IMAGE HERO SLIDER LOGIC (UNIFORM 16:9 + SEAMLESS INFINITE LOOP)
+    function normalizeHeroBannersList(list) {
+      const valid = (list || [])
+        .map(u => (typeof u === 'string' ? u.trim() : ''))
+        .filter(u => u.length > 0)
+        .slice(0, 4);
+      return valid.length > 0 ? valid : [DEFAULT_HERO_BANNER_URL];
+    }
+
+    function updateHeroDots() {
+      const dots = document.querySelectorAll('#heroDotsContainer button');
+      dots.forEach((dot, idx) => {
+        dot.className = idx === currentHeroSlide
+          ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300'
+          : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300';
+      });
+    }
+
+    function setHeroTrackPosition(trackIdx, animate) {
+      const track = document.getElementById('heroSliderTrack');
+      if (!track) return;
+      if (animate) {
+        track.style.transition = 'transform 700ms cubic-bezier(0.22, 1, 0.36, 1)';
+      } else {
+        track.style.transition = 'none';
+      }
+      track.style.transform = `translateX(-${trackIdx * 100}%)`;
+      if (!animate) {
+        void track.offsetWidth;
+      }
+    }
+
+    function snapHeroTrackIfOnClone() {
+      const n = heroBanners.length;
+      if (n <= 1) return;
+      if (heroSnapTimer) {
+        clearTimeout(heroSnapTimer);
+        heroSnapTimer = null;
+      }
+      if (currentHeroTrackIndex === n + 1) {
+        currentHeroTrackIndex = 1;
+        currentHeroSlide = 0;
+        setHeroTrackPosition(1, false);
+        updateHeroDots();
+      } else if (currentHeroTrackIndex === 0) {
+        currentHeroTrackIndex = n;
+        currentHeroSlide = n - 1;
+        setHeroTrackPosition(n, false);
+        updateHeroDots();
+      }
+    }
+
+    function scheduleHeroCloneSnap() {
+      if (heroSnapTimer) {
+        clearTimeout(heroSnapTimer);
+        heroSnapTimer = null;
+      }
+      const n = heroBanners.length;
+      if (n > 1 && (currentHeroTrackIndex === 0 || currentHeroTrackIndex === n + 1)) {
+        heroSnapTimer = setTimeout(() => {
+          snapHeroTrackIfOnClone();
+        }, 730);
+      }
+    }
+
+    function updateHeroSliderTransform(animate = true) {
+      if (heroBanners.length <= 1) {
+        currentHeroSlide = 0;
+        currentHeroTrackIndex = 0;
+        setHeroTrackPosition(0, false);
+      } else {
+        setHeroTrackPosition(currentHeroTrackIndex, animate);
+        scheduleHeroCloneSnap();
+      }
+      updateHeroDots();
+    }
+
+    function renderHeroSlider() {
+      heroBanners = normalizeHeroBannersList(heroBanners);
+      const n = heroBanners.length;
+      currentHeroSlide = 0;
+      currentHeroTrackIndex = n > 1 ? 1 : 0;
+
+      const track = document.getElementById('heroSliderTrack');
+      const prevBtn = document.getElementById('heroPrevBtn');
+      const nextBtn = document.getElementById('heroNextBtn');
+      const dotsContainer = document.getElementById('heroDotsContainer');
+      if (!track) return;
+
+      if (!heroTrackListenerAttached) {
+        track.addEventListener('transitionend', (e) => {
+          if (e.target === track && e.propertyName === 'transform') {
+            snapHeroTrackIfOnClone();
+          }
+        });
+        heroTrackListenerAttached = true;
+      }
+
+      const extendedSlides = n > 1
+        ? [heroBanners[n - 1], ...heroBanners, heroBanners[0]]
+        : heroBanners;
+
+      track.innerHTML = extendedSlides.map((url, idx) => `
+        <div class="w-full h-full shrink-0 aspect-video overflow-hidden bg-[#07090d]">
+          <img
+            src="${url}"
+            alt="Fidelity Business Group Corporate Banner"
+            draggable="false"
+            class="w-full h-full object-cover object-center block select-none"
+            loading="${idx <= 1 ? 'eager' : 'lazy'}"
+            onerror="this.src='${DEFAULT_HERO_BANNER_URL}'"
+          />
+        </div>
+      `).join('');
+
+      if (n > 1) {
+        if (prevBtn) prevBtn.classList.remove('hidden');
+        if (nextBtn) nextBtn.classList.remove('hidden');
+        if (dotsContainer) {
+          dotsContainer.classList.remove('hidden');
+          dotsContainer.innerHTML = heroBanners.map((_, idx) => `
+            <button
+              type="button"
+              onclick="goToHeroSlide(${idx})"
+              aria-label="Go to banner ${idx + 1}"
+              class="${idx === currentHeroSlide ? 'h-1.5 w-4 rounded-full bg-gold-500/90 transition-all duration-300' : 'h-1.5 w-1.5 rounded-full bg-white/45 hover:bg-gold-300/80 transition-all duration-300'}"
+            ></button>
+          `).join('');
+        }
+      } else {
+        if (prevBtn) prevBtn.classList.add('hidden');
+        if (nextBtn) nextBtn.classList.add('hidden');
+        if (dotsContainer) dotsContainer.classList.add('hidden');
+      }
+
+      updateHeroSliderTransform(false);
+      startHeroSliderAutoplay();
+    }
+
+    function nextHeroSlide() {
+      const n = heroBanners.length;
+      if (n <= 1) return;
+      if (currentHeroTrackIndex >= n + 1) {
+        currentHeroTrackIndex = 1;
+        setHeroTrackPosition(1, false);
+      }
+      currentHeroTrackIndex += 1;
+      currentHeroSlide = currentHeroTrackIndex > n ? 0 : currentHeroTrackIndex - 1;
+      updateHeroSliderTransform(true);
+    }
+
+    function prevHeroSlide() {
+      const n = heroBanners.length;
+      if (n <= 1) return;
+      if (currentHeroTrackIndex <= 0) {
+        currentHeroTrackIndex = n;
+        setHeroTrackPosition(n, false);
+      }
+      currentHeroTrackIndex -= 1;
+      currentHeroSlide = currentHeroTrackIndex <= 0 ? n - 1 : currentHeroTrackIndex - 1;
+      updateHeroSliderTransform(true);
+    }
+
+    function goToHeroSlide(idx) {
+      const n = heroBanners.length;
+      if (idx < 0 || idx >= n) return;
+      if (n <= 1) {
+        currentHeroSlide = 0;
+        currentHeroTrackIndex = 0;
+        updateHeroSliderTransform(false);
+        return;
+      }
+      currentHeroSlide = idx;
+      currentHeroTrackIndex = idx + 1;
+      updateHeroSliderTransform(true);
+    }
+
+    function pauseHeroSlider() {
+      isHeroSliderPaused = true;
+    }
+
+    function resumeHeroSlider() {
+      isHeroSliderPaused = false;
+    }
+
+    function startHeroSliderAutoplay() {
+      if (heroSliderTimer) {
+        clearInterval(heroSliderTimer);
+        heroSliderTimer = null;
+      }
+      if (heroBanners.length <= 1) return;
+      heroSliderTimer = setInterval(() => {
+        if (!isHeroSliderPaused) {
+          nextHeroSlide();
+        }
+      }, 4500);
+    }
+
+    // ADMIN HERO BANNER MANAGEMENT (UP TO 4 CLOUDINARY URLS)
+    function populateBannerInputs() {
+      for (let i = 0; i < 4; i++) {
+        const input = document.getElementById('heroBannerUrl' + i);
+        if (input) {
+          input.value = heroBanners[i] || '';
+          updateHeroBannerSlotPreview(i);
+        }
+      }
+    }
+
+    function updateHeroBannerSlotPreview(idx) {
+      const input = document.getElementById('heroBannerUrl' + idx);
+      const wrap = document.getElementById('heroBannerPreviewWrap' + idx);
+      const img = document.getElementById('heroBannerPreview' + idx);
+      if (!input || !wrap || !img) return;
+      const val = input.value.trim();
+      if (val.length > 5) {
+        img.src = val;
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+      }
+    }
+
+    function clearHeroBannerSlot(idx) {
+      const input = document.getElementById('heroBannerUrl' + idx);
+      if (input) {
+        input.value = '';
+        updateHeroBannerSlotPreview(idx);
+      }
+    }
+
+    function handleHeroBannerFileUpload(e, idx) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', CLOUDINARY_UPLOAD_URL, true);
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            const secureUrl = data.secure_url || data.url;
+            const input = document.getElementById('heroBannerUrl' + idx);
+            if (input && secureUrl) {
+              input.value = secureUrl;
+              updateHeroBannerSlotPreview(idx);
+            }
+          } catch (err) {
+            console.warn('Banner upload parse error:', err);
+          }
+        }
+      };
+      xhr.onerror = () => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const input = document.getElementById('heroBannerUrl' + idx);
+          if (input && reader.result) {
+            input.value = reader.result;
+            updateHeroBannerSlotPreview(idx);
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      xhr.send(formData);
+    }
+
+    async function handleSaveHeroBanners(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveBannersBtn');
+      const successBox = document.getElementById('saveBannersSuccess');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'በማስቀመጥ ላይ...';
+      }
+
+      const urls = [];
+      for (let i = 0; i < 4; i++) {
+        const el = document.getElementById('heroBannerUrl' + i);
+        const val = el ? el.value.trim() : '';
+        if (val) urls.push(val);
+      }
+      const normalized = normalizeHeroBannersList(urls);
+
+      if (firestoreDb) {
+        try {
+          await firestoreDb.collection(HERO_BANNERS_COLLECTION).doc(HERO_BANNERS_DOC_ID).set({
+            banners: normalized,
+            updatedAt: Date.now()
+          });
+        } catch (err) {
+          console.warn('Could not save hero banners to Firestore, updating local state:', err);
+        }
+      }
+
+      heroBanners = normalized;
+      currentHeroSlide = 0;
+      renderHeroSlider();
+      populateBannerInputs();
+
+      if (successBox) {
+        successBox.textContent = 'ዋና ባነሮች በተሳካ ሁኔታ ተዘምነዋል! (Firestore settings/hero_banners)';
+        successBox.classList.remove('hidden');
+        setTimeout(() => successBox.classList.add('hidden'), 4500);
+      }
+
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'ባነሮችን በFirestore አስቀምጥ / Save Hero Banners';
+      }
+    }
+
+    function getPostSlotInputId(slotIdx) {
+      return slotIdx === 0 ? 'postImageUrl' : ('postImageUrl' + slotIdx);
+    }
+
+    // CLOUDINARY DIRECT UNSIGNED UPLOAD (HARDCODED, UP TO 4 SLOTS)
+    function handleDirectCloudinaryUpload(e, slotIdx = 0) {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -1457,9 +2630,11 @@
       const progressBar = document.getElementById('uploadProgressBar');
       const statusText = document.getElementById('uploadStatusText');
       const percentText = document.getElementById('uploadPercentText');
+      const inputEl = document.getElementById(getPostSlotInputId(slotIdx));
 
       progressContainer.classList.remove('hidden');
-      statusText.textContent = 'ምስሉ ወደ Cloudinary በመጫን ላይ...';
+      statusText.textContent = 'ምስል #' + (slotIdx + 1) + ' ወደ Cloudinary በመጫን ላይ...';
+      statusText.className = 'text-[11px] text-gold-300 font-mono';
       percentText.textContent = '0%';
       progressBar.style.width = '0%';
 
@@ -1483,9 +2658,9 @@
           try {
             const data = JSON.parse(xhr.responseText);
             const secureUrl = data.secure_url || data.url;
-            document.getElementById('postImageUrl').value = secureUrl;
-            handleImageUrlChange(secureUrl);
-            statusText.textContent = 'ምስሉ በክላውዲነሪ (Cloud Name: du5fpqadb) በተሳካ ሁኔታ ተጭኗል!';
+            if (inputEl) inputEl.value = secureUrl;
+            handleImageUrlChange(secureUrl, slotIdx);
+            statusText.textContent = 'ምስል #' + (slotIdx + 1) + ' በክላውዲነሪ (du5fpqadb) በተሳካ ሁኔታ ተጭኗል!';
             statusText.className = 'text-[11px] text-emerald-400 font-mono';
           } catch(err) {
             statusText.textContent = 'የምስል ዳታ መረጃ ማግኘት አልተቻለም።';
@@ -1498,13 +2673,12 @@
       };
 
       xhr.onerror = () => {
-        // When client adblocker, CORS, or network blocks api.cloudinary.com, provide instant local preview fallback
         const reader = new FileReader();
         reader.onload = () => {
           const dataUrl = reader.result;
-          document.getElementById('postImageUrl').value = dataUrl;
-          handleImageUrlChange(dataUrl);
-          statusText.textContent = 'ምስሉ ተዘጋጅቷል (በቅድመ እይታ ላይ ይገኛል)';
+          if (inputEl) inputEl.value = dataUrl;
+          handleImageUrlChange(dataUrl, slotIdx);
+          statusText.textContent = 'ምስል #' + (slotIdx + 1) + ' ተዘጋጅቷል (በቅድመ እይታ ላይ ይገኛል)';
           statusText.className = 'text-[11px] text-amber-300 font-mono';
         };
         reader.onerror = () => {
@@ -1517,15 +2691,23 @@
       xhr.send(formData);
     }
 
-    function handleImageUrlChange(url) {
-      const container = document.getElementById('imagePreviewContainer');
-      const img = document.getElementById('imagePreviewElement');
+    function handleImageUrlChange(url, slotIdx = 0) {
+      const suffix = slotIdx === 0 ? '' : String(slotIdx);
+      const container = document.getElementById('imagePreviewContainer' + suffix);
+      const img = document.getElementById('imagePreviewElement' + suffix);
+      if (!container || !img) return;
       if (url && url.trim().length > 5) {
         img.src = url.trim();
         container.classList.remove('hidden');
       } else {
         container.classList.add('hidden');
       }
+    }
+
+    function clearPostImageSlot(slotIdx) {
+      const inputEl = document.getElementById(getPostSlotInputId(slotIdx));
+      if (inputEl) inputEl.value = '';
+      handleImageUrlChange('', slotIdx);
     }
 
     function handleStartEditPost(id) {
@@ -1541,9 +2723,14 @@
       document.getElementById('postClient').value = p.client || p.clientAm || '';
       document.getElementById('postLocation').value = p.location || p.locationAm || '';
       document.getElementById('postYear').value = p.year || '2026';
-      document.getElementById('postImageUrl').value = p.imageUrl || '';
 
-      handleImageUrlChange(p.imageUrl || '');
+      const imgs = getPostImagesList(p);
+      for (let i = 0; i < 4; i++) {
+        const val = imgs[i] || '';
+        const inputEl = document.getElementById(getPostSlotInputId(i));
+        if (inputEl) inputEl.value = val;
+        handleImageUrlChange(val, i);
+      }
 
       const displayTitle = p.titleAm || p.title || p.id;
       document.getElementById('editingPostTitleLabel').textContent = displayTitle;
@@ -1561,8 +2748,9 @@
       if (form) form.reset();
       const banner = document.getElementById('adminEditingBanner');
       if (banner) banner.classList.add('hidden');
-      const prevCont = document.getElementById('imagePreviewContainer');
-      if (prevCont) prevCont.classList.add('hidden');
+      for (let i = 0; i < 4; i++) {
+        handleImageUrlChange('', i);
+      }
       const progCont = document.getElementById('uploadProgressContainer');
       if (progCont) progCont.classList.add('hidden');
 
@@ -1572,12 +2760,24 @@
       }
     }
 
-    // POST CREATION / EDITING WITH FIRESTORE 'posts' SYNC (NO LOCALSTORAGE)
+    // POST CREATION / EDITING WITH MULTI-IMAGE ARRAY & FIRESTORE 'posts' SYNC (NO LOCALSTORAGE)
     async function handleCreateOrUpdatePost(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitPostBtn');
       const editingId = document.getElementById('editingPostId').value;
       const isEditing = Boolean(editingId);
+
+      const collectedImages = [];
+      for (let i = 0; i < 4; i++) {
+        const inputEl = document.getElementById(getPostSlotInputId(i));
+        const val = inputEl ? inputEl.value.trim() : '';
+        if (val && !collectedImages.includes(val)) {
+          collectedImages.push(val);
+        }
+      }
+      if (collectedImages.length === 0) {
+        collectedImages.push('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80');
+      }
 
       submitBtn.disabled = true;
       submitBtn.textContent = isEditing ? 'በማዘመን ላይ...' : 'በመለጠፍ ላይ...';
@@ -1592,9 +2792,9 @@
       const descAm = document.getElementById('postDescAm').value.trim();
       const descEn = document.getElementById('postDescEn').value.trim() || descAm;
       const finalDescAm = descAm || descEn;
-      const imageUrl = document.getElementById('postImageUrl').value.trim() || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80';
+      const imageUrl = collectedImages[0];
 
-      // 1. CLOUDINARY & FIREBASE INTEGRATION: Image URL and bilingual text saved TOGETHER as Firestore document
+      // 1. CLOUDINARY & FIREBASE INTEGRATION: Multi-image array and primary imageUrl saved TOGETHER in Firestore document
       const postData = {
         title: titleEn,
         titleAm: finalTitleAm,
@@ -1607,6 +2807,7 @@
         description: descEn,
         descriptionAm: finalDescAm,
         imageUrl,
+        images: collectedImages,
         featured: false
       };
 
@@ -1667,13 +2868,14 @@
 
       list.innerHTML = allProjects.map(p => {
         const title = (currentLang === 'am' && p.titleAm) ? p.titleAm : p.title;
+        const postImgs = getPostImagesList(p);
         return `
           <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-slate-800">
             <div class="flex items-center gap-3 overflow-hidden">
-              <img src="${p.imageUrl}" alt="${title}" loading="lazy" class="w-12 h-12 rounded object-cover border border-slate-800" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80'">
+              <img src="${postImgs[0]}" alt="${title}" loading="lazy" class="w-12 h-12 rounded object-cover border border-slate-800" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=120&q=80'">
               <div class="truncate">
                 <h5 class="text-xs font-bold text-white truncate">${title}</h5>
-                <span class="text-[10px] text-gold-400 uppercase font-mono">${p.sector}</span>
+                <span class="text-[10px] text-gold-400 uppercase font-mono">${p.sector}${postImgs.length > 1 ? ' · ' + postImgs.length + ' photos' : ''}</span>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -1705,15 +2907,53 @@
       renderAdminManageList();
     }
 
-    // 2. REAL-TIME GLOBAL SYNC VIA onSnapshot on 'posts' collection
-    function initFirebaseApp() {
+    // 2. REAL-TIME GLOBAL SYNC VIA onSnapshot on 'posts' collection and 'settings/hero_banners'
+    async function initFirebaseApp() {
       try {
-        if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('DEMO_KEY') && typeof firebase !== 'undefined') {
-          const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+        if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('DEMO_KEY')) {
           if (FIREBASE_CONFIG.firestoreDatabaseId) {
-            firestoreDb = app.firestore(FIREBASE_CONFIG.firestoreDatabaseId);
-          } else {
+            const [modAppPkg, modFs] = await Promise.all([
+              import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
+              import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js')
+            ]);
+            const modApp = modAppPkg.getApps().length
+              ? modAppPkg.getApps()[0]
+              : modAppPkg.initializeApp(FIREBASE_CONFIG);
+            const modDb = modFs.getFirestore(modApp, FIREBASE_CONFIG.firestoreDatabaseId);
+            firestoreDb = {
+              collection: (colName) => {
+                const colRef = modFs.collection(modDb, colName);
+                return {
+                  orderBy: (field, dir) => {
+                    const q = modFs.query(colRef, modFs.orderBy(field, dir || 'asc'));
+                    return {
+                      onSnapshot: (onNext, onErr) => modFs.onSnapshot(q, onNext, onErr)
+                    };
+                  },
+                  onSnapshot: (onNext, onErr) => modFs.onSnapshot(colRef, onNext, onErr),
+                  add: (data) => modFs.addDoc(colRef, data),
+                  doc: (docId) => {
+                    const docRef = modFs.doc(modDb, colName, docId);
+                    return {
+                      onSnapshot: (onNext, onErr) => modFs.onSnapshot(docRef, (snap) => {
+                        onNext({ exists: snap.exists(), data: () => snap.data(), id: snap.id });
+                      }, onErr),
+                      set: (data) => modFs.setDoc(docRef, data),
+                      update: (data) => modFs.updateDoc(docRef, data),
+                      delete: () => modFs.deleteDoc(docRef)
+                    };
+                  }
+                };
+              }
+            };
+          } else if (typeof firebase !== 'undefined') {
+            const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
             firestoreDb = app.firestore();
+          }
+
+          if (!firestoreDb) {
+            renderPortfolio();
+            return;
           }
 
           // Real-time synchronization on collection 'posts' for all visitors via onSnapshot
@@ -1736,17 +2976,68 @@
             renderAdminManageList();
           }, (err) => {
             console.warn('Firestore subscription fallback:', err);
+            renderPortfolio();
+            renderAdminManageList();
           });
+
+          // Real-time synchronization on Hero Banners (settings/hero_banners)
+          firestoreDb.collection(HERO_BANNERS_COLLECTION).doc(HERO_BANNERS_DOC_ID).onSnapshot((docSnap) => {
+            if (docSnap.exists) {
+              const data = docSnap.data();
+              if (data && Array.isArray(data.banners) && data.banners.length > 0) {
+                heroBanners = normalizeHeroBannersList(data.banners);
+                renderHeroSlider();
+                populateBannerInputs();
+              }
+            }
+          }, (err) => {
+            console.warn('Hero banners Firestore sync fallback:', err);
+          });
+        } else {
+          renderPortfolio();
         }
       } catch(err) {
         console.warn('Firebase initialization notice:', err);
+        renderPortfolio();
       }
     }
 
-    // Initialize application
+    // Subtle scroll fade-in reveal for Sectors cards
+    function initSectorsScrollReveal() {
+      const cards = document.querySelectorAll('#sectors .sector-reveal-card');
+      if (!cards.length) return;
+      if (!('IntersectionObserver' in window)) {
+        cards.forEach((card) => {
+          card.classList.remove('opacity-0', 'translate-y-6');
+          card.classList.add('opacity-100', 'translate-y-0');
+        });
+        return;
+      }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.remove('opacity-0', 'translate-y-6');
+          entry.target.classList.add('opacity-100', 'translate-y-0');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      cards.forEach((card) => observer.observe(card));
+    }
+
+    // Initialize application: display skeletons while waiting for Firestore sync
     applyTranslations();
-    renderPortfolio();
+    renderHeroSlider();
+    initSectorsScrollReveal();
+    renderPortfolioSkeletons();
     initFirebaseApp();
+
+    // Safety fallback: if Firebase response takes longer than 750ms or is offline, show cached/default projects
+    setTimeout(() => {
+      const grid = document.getElementById('portfolioGrid');
+      if (grid && grid.querySelector('.animate-pulse')) {
+        renderPortfolio();
+      }
+    }, 750);
   </script>
 </body>
 </html>

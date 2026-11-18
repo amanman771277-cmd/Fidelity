@@ -114,18 +114,21 @@ test('generateSingleFileHtml and UI do not include HTML download buttons or expo
   assert.equal(html.includes('fidelity-business-group-single-file.html'), false);
 });
 
-test('SECTOR_LOGOS exports exact Cloudinary URLs and renders in generateSingleFileHtml', async () => {
-  const { SECTOR_LOGOS, HERO_BANNER_URL } = await import('./portfolio.ts');
-  assert.equal(SECTOR_LOGOS.architects, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125946/ymxnstgo7wsjqgj6ypbn.jpg');
+test('SECTOR_LOGOS and MAIN_LOGO_URL export exact Cloudinary URLs and render in generateSingleFileHtml', async () => {
+  const { SECTOR_LOGOS, HERO_BANNER_URL, MAIN_LOGO_URL } = await import('./portfolio.ts');
+  assert.equal(SECTOR_LOGOS.architects, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794822406/d4ix1jiotomsxokxmhmq.jpg');
   assert.equal(SECTOR_LOGOS.branding, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794125990/jqvhcx8zmninjsnpcg6h.jpg');
   assert.equal(SECTOR_LOGOS.furniture, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794126024/ck8jeuupxf7yrmseigvc.jpg');
   assert.equal(HERO_BANNER_URL, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794126950/dvd9lq9xzmefjopiyufp.jpg');
+  assert.equal(MAIN_LOGO_URL, 'https://res.cloudinary.com/du5fpqadb/image/upload/v1794823734/ydihcua1jxejcfxcoah3.png');
 
   const html = generateSingleFileHtml(INITIAL_PROJECTS);
-  assert.ok(html.includes('ymxnstgo7wsjqgj6ypbn.jpg'));
+  assert.ok(html.includes('d4ix1jiotomsxokxmhmq.jpg'));
   assert.ok(html.includes('jqvhcx8zmninjsnpcg6h.jpg'));
   assert.ok(html.includes('ck8jeuupxf7yrmseigvc.jpg'));
   assert.ok(html.includes('dvd9lq9xzmefjopiyufp.jpg'));
+  assert.ok(html.includes('ydihcua1jxejcfxcoah3.png'));
+  assert.ok(html.includes('rounded-full object-cover border border-gold-500/40'));
 });
 
 test('generateSingleFileHtml includes physical address in footer and contact section', () => {
@@ -167,4 +170,120 @@ test('generateSingleFileHtml includes loading="lazy" for performance optimizatio
   assert.ok(html.includes('loading="lazy"'));
 });
 
+test('generateSingleFileHtml includes animated skeleton loading states for perceived performance while waiting for Firebase sync', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('animate-pulse'));
+  assert.ok(html.includes('renderPortfolioSkeletons'));
+  assert.ok(html.includes('portfolioGrid'));
+  assert.ok(html.includes('Skeleton Loading Cards'));
+});
+
+test('generateSingleFileHtml renders uniform 16:9 hero banner with object-cover and no sm:object-contain side gaps', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('alt="Fidelity Business Group Corporate Banner"'));
+  assert.ok(html.includes('aspect-video'));
+  assert.ok(html.includes('w-full h-full object-cover object-center block'));
+  assert.equal(html.includes('sm:object-contain'), false);
+});
+
+test('generateSingleFileHtml includes multi-image hero slider with arrows, dots, autoplay, and seamless infinite loop', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('id="heroSliderTrack"'));
+  assert.ok(html.includes('id="heroPrevBtn"'));
+  assert.ok(html.includes('id="heroNextBtn"'));
+  assert.ok(html.includes('id="heroDotsContainer"'));
+  assert.ok(html.includes('function nextHeroSlide()'));
+  assert.ok(html.includes('function prevHeroSlide()'));
+  assert.ok(html.includes('function goToHeroSlide(idx)'));
+  assert.ok(html.includes('function startHeroSliderAutoplay()'));
+  assert.ok(html.includes('function snapHeroTrackIfOnClone()'));
+  assert.ok(html.includes('currentHeroTrackIndex'));
+  assert.ok(html.includes('w-8 h-8 rounded-full bg-black/30'));
+  assert.ok(html.includes('backdrop-blur-md'));
+  assert.ok(html.includes('h-1.5 w-4 rounded-full'));
+});
+
+test('generateSingleFileHtml includes Admin Panel Banner Management for up to 4 Cloudinary URLs synced with Firestore settings', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('id="tabBtnBanners"'));
+  assert.ok(html.includes('id="tabContentBanners"'));
+  assert.ok(html.includes('id="heroBannerUrl0"'));
+  assert.ok(html.includes('id="heroBannerUrl1"'));
+  assert.ok(html.includes('id="heroBannerUrl2"'));
+  assert.ok(html.includes('id="heroBannerUrl3"'));
+  assert.ok(html.includes('handleSaveHeroBanners'));
+  assert.ok(html.includes("HERO_BANNERS_COLLECTION = 'settings'"));
+  assert.ok(html.includes("HERO_BANNERS_DOC_ID = 'hero_banners'"));
+  // Ensure clean config without Firebase setup clutter
+  assert.equal(html.includes('cfgApiKey'), false);
+  assert.equal(html.includes('tabBtnFirebase'), false);
+});
+
+test('I18N contains Hero Banners translations for both Amharic and English', () => {
+  assert.ok(I18N.am.admin.tabBanners.includes('ባነሮች'));
+  assert.ok(I18N.en.admin.tabBanners.includes('Hero Banners'));
+  assert.ok(I18N.am.admin.saveBannersBtn.includes('ባነሮችን'));
+  assert.ok(I18N.en.admin.saveBannersBtn.includes('Save Hero Banners'));
+});
+
+test('generateSingleFileHtml includes IntersectionObserver scroll fade-in classes for Sectors cards', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('sector-reveal-card'));
+  assert.ok(html.includes('initSectorsScrollReveal'));
+  assert.ok(html.includes('IntersectionObserver'));
+  assert.ok(html.includes('opacity-0 translate-y-6 transition-all duration-700 ease-out'));
+});
+
+test('normalizePostImages and getProjectImages deduplicate, preserve fallback, and cap at 4 images', async () => {
+  const { normalizePostImages, getProjectImages } = await import('./portfolio.ts');
+  const deduped = normalizePostImages(['https://a.jpg', ' ', 'https://a.jpg', 'https://b.jpg', 'https://c.jpg', 'https://d.jpg', 'https://e.jpg']);
+  assert.deepEqual(deduped, ['https://a.jpg', 'https://b.jpg', 'https://c.jpg', 'https://d.jpg']);
+
+  const fallbackImgs = getProjectImages({ imageUrl: 'https://cover.jpg' });
+  assert.deepEqual(fallbackImgs, ['https://cover.jpg']);
+
+  const multiImgs = getProjectImages({
+    imageUrl: 'https://cover.jpg',
+    images: ['https://1.jpg', 'https://2.jpg', 'https://3.jpg']
+  });
+  assert.deepEqual(multiImgs, ['https://1.jpg', 'https://2.jpg', 'https://3.jpg']);
+});
+
+test('generateSingleFileHtml supports 4-slot post image uploads and interactive post card slider', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  // 4 upload slots in Add/Edit Post form
+  assert.ok(html.includes('id="postImageUrl"'));
+  assert.ok(html.includes('id="postImageUrl1"'));
+  assert.ok(html.includes('id="postImageUrl2"'));
+  assert.ok(html.includes('id="postImageUrl3"'));
+  assert.ok(html.includes('id="adminFileInput"'));
+  assert.ok(html.includes('id="adminFileInput1"'));
+  assert.ok(html.includes('id="adminFileInput2"'));
+  assert.ok(html.includes('id="adminFileInput3"'));
+  // Saves images array in Firestore postData
+  assert.ok(html.includes('images: collectedImages'));
+  // Interactive post card slider with arrows, dots, and touch swipe
+  assert.ok(html.includes('function slidePostCard('));
+  assert.ok(html.includes('function goToPostSlide('));
+  assert.ok(html.includes('handlePostTouchStart'));
+  assert.ok(html.includes('handlePostTouchEnd'));
+  assert.ok(html.includes('postSliderTrack-'));
+  assert.ok(html.includes('postSliderDots-'));
+});
+
+test('generateSingleFileHtml includes post detail modal slider with touch-action: pan-y and smooth touch handlers', () => {
+  const html = generateSingleFileHtml(INITIAL_PROJECTS);
+  assert.ok(html.includes('id="postDetailModal"'));
+  assert.ok(html.includes('id="postModalViewport"'));
+  assert.ok(html.includes('id="postModalSliderTrack"'));
+  assert.ok(html.includes('touch-action: pan-y;'));
+  assert.ok(html.includes('overscroll-behavior-x: contain;'));
+  assert.ok(html.includes('touch-pan-y'));
+  assert.ok(html.includes('overscroll-x-contain'));
+  assert.ok(html.includes('function handleModalTouchStart('));
+  assert.ok(html.includes('function handleModalTouchMove('));
+  assert.ok(html.includes('function handleModalTouchEnd('));
+  assert.ok(html.includes('function handlePostTouchMove('));
+  assert.ok(html.includes('ontouchcancel='));
+});
 

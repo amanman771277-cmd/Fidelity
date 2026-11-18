@@ -5,10 +5,12 @@ import {
   addProjectToStore,
   deleteProjectFromStore,
   updateProjectInStore,
+  subscribeToHeroBanners,
+  saveHeroBannersToStore,
   getStoredFirebaseConfig,
   saveStoredFirebaseConfig
 } from './utils/firebase.ts';
-import { INITIAL_PROJECTS } from './utils/portfolio.ts';
+import { INITIAL_PROJECTS, HERO_BANNER_URL } from './utils/portfolio.ts';
 import { I18N, Language } from './utils/i18n.ts';
 import { Navbar } from './components/Navbar.tsx';
 import { Hero } from './components/Hero.tsx';
@@ -33,6 +35,8 @@ export default function App() {
   });
 
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [heroBanners, setHeroBanners] = useState<string[]>([HERO_BANNER_URL]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeSector, setActiveSector] = useState<SectorId>('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
@@ -58,13 +62,20 @@ export default function App() {
 
   // Subscribe to real-time project updates (Firebase Firestore or instant local cache)
   useEffect(() => {
+    setIsLoading(true);
     const unsubscribe = subscribeToProjects(firebaseConfig, (updatedProjects, isLive) => {
       setProjects(updatedProjects);
       setIsFirebaseLive(isLive);
+      setIsLoading(false);
+    });
+
+    const unsubscribeBanners = subscribeToHeroBanners(firebaseConfig, (updatedBanners) => {
+      setHeroBanners(updatedBanners);
     });
 
     return () => {
       unsubscribe();
+      unsubscribeBanners();
     };
   }, [firebaseConfig]);
 
@@ -97,6 +108,11 @@ export default function App() {
     setFirebaseConfig(newConfig);
   };
 
+  const handleSaveHeroBanners = async (banners: string[]) => {
+    const saved = await saveHeroBannersToStore(banners, firebaseConfig);
+    setHeroBanners(saved);
+  };
+
   return (
     <div className="min-h-screen bg-[#07090d] text-slate-100 flex flex-col font-sans selection:bg-[#d4af37]/30 selection:text-[#f3d375]">
       {/* Top Header with 3-Dot (Ellipsis) Menu */}
@@ -115,6 +131,7 @@ export default function App() {
           onSelectSector={(sector) => {
             setActiveSector(sector);
           }}
+          heroBanners={heroBanners}
           t={t}
           currentLang={currentLang}
         />
@@ -138,6 +155,7 @@ export default function App() {
           onSelectProject={setSelectedProject}
           onOpenAdmin={() => setAdminModalOpen(true)}
           isFirebaseLive={isFirebaseLive}
+          isLoading={isLoading}
           t={t}
           currentLang={currentLang}
         />
@@ -187,6 +205,8 @@ export default function App() {
         onAddProject={handleAddProject}
         onUpdateProject={handleUpdateProject}
         onDeleteProject={handleDeleteProject}
+        heroBanners={heroBanners}
+        onSaveHeroBanners={handleSaveHeroBanners}
         firebaseConfig={firebaseConfig}
         onSaveFirebaseConfig={handleSaveFirebaseConfig}
         isFirebaseLive={isFirebaseLive}

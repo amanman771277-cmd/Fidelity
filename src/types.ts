@@ -8,6 +8,7 @@ export interface Project {
   description: string;
   descriptionAm?: string;
   imageUrl: string;
+  images?: string[];
   featured?: boolean;
   client?: string;
   clientAm?: string;

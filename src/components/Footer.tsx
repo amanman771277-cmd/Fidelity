@@ -1,6 +1,6 @@
 import React from 'react';
 import { Send, Lock, ArrowUp, Building2, Megaphone, Armchair } from 'lucide-react';
-import { TELEGRAM_URL, TELEGRAM_HANDLE } from '../utils/portfolio.ts';
+import { TELEGRAM_URL, TELEGRAM_HANDLE, MAIN_LOGO_URL } from '../utils/portfolio.ts';
 import { Translations, Language } from '../utils/i18n.ts';
 
 interface FooterProps {
@@ -30,9 +30,11 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand & Motto */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded border border-[#d4af37]/40 bg-gradient-to-br from-[#d4af37]/20 to-transparent flex items-center justify-center font-heading font-black text-[#f3d375] text-lg shadow-[0_0_15px_rgba(212,175,55,0.15)]">
-                F
-              </div>
+              <img 
+                src={MAIN_LOGO_URL}
+                alt="Fidelity Business Group Logo"
+                className="w-12 h-12 rounded-full object-cover border border-[#d4af37]/40 bg-[#d4af37]/10 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+              />
               <div>
                 <span className="font-heading font-bold text-base tracking-[0.18em] text-white block">
                   {t.brandName}
